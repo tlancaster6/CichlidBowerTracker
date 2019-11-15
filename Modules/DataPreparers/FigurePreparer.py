@@ -1,7 +1,10 @@
 from Modules.DataObjects.LogParser import LogParser as LP
 from Modules.DataObjects.DepthAnalyzer import DepthAnalyzer as DA
+from Modules.FileManagers.ProjFileManager import ProjFileManager as PFM
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import pandas as pd
+import seaborn as sns
 import datetime
 import os
 
@@ -16,13 +19,13 @@ class FigurePreparer:
 		self.__version__ = '1.0.0'
 		self.projFileManager = projFileManager
 		self.lp = LP(projFileManager.localLogfile)
+		self.da_obj = DA(projFileManager)
 
 	def validateInputData(self):
 		# Needs to be modified
-		assert os.path.exists(self.projFileManager.localFramesDir)
-		for frame in self.lp.frames:
-			assert os.path.exists(self.projFileManager.localMasterDir + frame.npy_file)
-			assert os.path.exists(self.projFileManager.localMasterDir + frame.pic_file)
+		assert os.path.exists(self.projFileManager.localLogfile)
+		assert os.path.exists(self.projFileManager.localFiguresDir)
+		assert os.path.exists(self.projFileManager.localSmoothDepthFile)
 		assert os.path.exists(self.projFileManager.localTroubleshootingDir)
 		assert os.path.exists(self.projFileManager.localAnalysisDir)
 
@@ -32,161 +35,140 @@ class FigurePreparer:
 	def _combineVideoData(self):
 		pass
 		
-	def _createDepthFigures(self, hourlyDelta = 2):
+	def _createDepthFigures(self, hourlyDelta=2):
 
 		# Create summary figure of daily values
-		figDaily = plt.figure(figsize = (11,8.5)) 
+		figDaily = plt.figure(num=1, figsize=(11, 8.5))
 		figDaily.suptitle(self.lp.projectID + ' DailySummary')
-		gridDaily = plt.GridSpec(10, self.lp.numDays*4, wspace=0.02, hspace=0.02)
+		gridDaily = mpl.gridspec.GridSpec(3, 1)
 
 		# Create summary figure of hourly values
-		figHourly = plt.figure(figsize = (11,8.5)) 
+		figHourly = plt.figure(num=2, figsize=(11, 8.5))
 		figHourly.suptitle(self.lp.projectID + ' HourlySummary')
 		gridHourly = plt.GridSpec(self.lp.numDays, int(24/hourlyDelta) + 2, wspace=0.02, hspace=0.02)
 
-		start_day = self.lp.frames[0].time.replace(hour = 0, minute = 0, second = 0, microsecond = 0)
+		start_day = self.lp.frames[0].time.replace(hour=0, minute=0, second=0, microsecond=0)
 		totalChangeData = vars(self.da_obj.returnVolumeSummary(self.lp.frames[0].time, self.lp.frames[-1].time))
 
 		# Show picture of final depth
-		topAx1 = figDaily.add_subplot(gridDaily[0:2, 0:self.lp.numDays*1-1])
-		topAx1_ax = topAx1.imshow(self.da_obj.returnHeight(self.lp.frames[-1].time, cropped = True), vmin = 50, vmax = 70)
-		topAx1.set_title('Final depth (cm)')
-		topAx1.set_xticklabels([])
-		topAx1.set_yticklabels([])
-		plt.colorbar(topAx1_ax, ax = topAx1)
+		topGrid = mpl.gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gridDaily[0])
+		topAx1 = figDaily.add_subplot(topGrid[0])
+		topAx1_ax = topAx1.imshow(self.da_obj.returnHeight(self.lp.frames[-1].time, cropped=True), vmin=50, vmax=70)
+		topAx1.set_title('Final Depth (cm)')
+		topAx1.tick_params(colors=[0, 0, 0, 0])
+		plt.colorbar(topAx1_ax, ax=topAx1)
 
 		# Show picture of total depth change
-		topAx2 = figDaily.add_subplot(gridDaily[0:2, self.lp.numDays*1:self.lp.numDays*2-1])
-		topAx2_ax = topAx2.imshow(self.da_obj.returnHeightChange(self.lp.frames[0].time, self.lp.frames[-1].time, cropped = True), vmin = -5, vmax = 5)
-		topAx2.set_title('Total depth change (cm)')
-		topAx2.set_xticklabels([])
-		topAx2.set_yticklabels([])
-		plt.colorbar(topAx2_ax, ax = topAx2)
+		topAx2 = figDaily.add_subplot(topGrid[1])
+		topAx2_ax = topAx2.imshow(self.da_obj.returnHeightChange(
+			self.lp.frames[0].time, self.lp.frames[-1].time, cropped=True), vmin=-5, vmax=5)
+		topAx2.set_title('Total Depth Change (cm)')
+		topAx2.tick_params(colors=[0, 0, 0, 0])
+		plt.colorbar(topAx2_ax, ax=topAx2)
 
 		# Show picture of pit and castle mask
-		topAx3 = figDaily.add_subplot(gridDaily[0:2, self.lp.numDays*2:self.lp.numDays*3-1])
+		topAx3 = figDaily.add_subplot(topGrid[2])
 		topAx3_ax = topAx3.imshow(self.da_obj.returnHeightChange(self.lp.frames[0].time, self.lp.frames[-1].time, cropped = True, masked = True), vmin = -5, vmax = 5)
-		topAx3.set_title('Mask')
-		topAx3.set_xticklabels([])
-		topAx3.set_yticklabels([])
-		#plt.colorbar(topAx3_ax, ax = topAx3)
-
-		# Bower index based upon higher thresholds
-		"""topAx4 = figDaily.add_subplot(gridDaily[0:2, self.lp.numDays*3:self.lp.numDays*4])
-		x_values = [1.0, 3.0, 5.0]
-		y_values = []
-		for thresh in x_values:
-			tdata = self._summarizeBuilding(self.lp.frames[0].time, self.lp.frames[-1].time, totalThreshold = thresh)
-			y_values.append(tdata['bowerIndex'])
-			totalChangeData['bowerIndex_' + str(thresh)] = tdata['bowerIndex']
-		topAx4.plot(x_values, y_values)
-		topAx4.set_title('BowerIndex vs. Threshold (cm)')
-		figDaily.tight_layout()    """
+		topAx3.set_title('Masked Depth Change (cm)')
+		topAx3.tick_params(colors=[0, 0, 0, 0])
+		plt.colorbar(topAx3_ax, ax=topAx3)
 
 		# Create figures and get data for daily Changes
 		dailyChangeData = []
+		w_ratios = ([1.0] * self.lp.numDays) + [0.25]
+		midGrid = mpl.gridspec.GridSpecFromSubplotSpec(3, self.lp.numDays + 1, subplot_spec=gridDaily[1], width_ratios=w_ratios)
+		v = 2
 		for i in range(self.lp.numDays):
-			if i == 0:
-				current_ax = [figDaily.add_subplot(gridDaily[3, i*4:i*4+3])]
-				current_ax2 = [figDaily.add_subplot(gridDaily[4, i*4:i*4+3], sharex = current_ax[i])]
-				current_ax3 = [figDaily.add_subplot(gridDaily[5, i*4:i*4+3], sharex = current_ax[i])]
-				
-			else:
-				current_ax.append(figDaily.add_subplot(gridDaily[3, i*4:i*4+3], sharey = current_ax[0]))
-				current_ax2.append(figDaily.add_subplot(gridDaily[4, i*4:i*4+3], sharex = current_ax[i], sharey = current_ax2[0]))
-				current_ax3.append(figDaily.add_subplot(gridDaily[5, i*4:i*4+3], sharex = current_ax[i], sharey = current_ax3[0]))
-				
-			start = start_day + datetime.timedelta(hours = 24*i)
-			stop = start_day + datetime.timedelta(hours = 24*(i+1))
-			
-			dailyChangeData.append(vars(self.da_obj.returnVolumeSummary(start,stop)))
-			dailyChangeData[i]['Day'] = i+1
-			dailyChangeData[i]['Midpoint'] = i+1 + .5
+			start = start_day + datetime.timedelta(hours=24 * i)
+			stop = start_day + datetime.timedelta(hours=24 * (i + 1))
+			dailyChangeData.append(vars(self.da_obj.returnVolumeSummary(start, stop)))
+			dailyChangeData[i]['Day'] = i + 1
+			dailyChangeData[i]['Midpoint'] = i + 1 + .5
 			dailyChangeData[i]['StartTime'] = str(start)
 
-			current_ax[i].set_title('Day ' + str(i+1))
+			current_axs = [figDaily.add_subplot(midGrid[n, i]) for n in [0, 1, 2]]
+			current_axs[0].imshow(self.da_obj.returnHeightChange(start_day, stop, cropped=True), vmin=-v, vmax=v)
+			current_axs[0].set_title('Day %i' % (i + 1))
+			current_axs[1].imshow(self.da_obj.returnHeightChange(start, stop, cropped=True), vmin=-v, vmax=v)
+			current_axs[2].imshow(self.da_obj.returnHeightChange(start, stop, masked=True, cropped=True), vmin=-v, vmax=v)
+			[ax.tick_params(colors=[0, 0, 0, 0]) for ax in current_axs]
+			[ax.set_adjustable('box') for ax in current_axs]
+		cax = figDaily.add_subplot(midGrid[:, -1])
+		plt.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=-v, vmax=v), cmap='viridis'), cax=cax)
 
-			current_ax[i].imshow(self.da_obj.returnHeightChange(start_day, stop, cropped = True), vmin = -2, vmax = 2)
-			current_ax2[i].imshow(self.da_obj.returnHeightChange(start, stop, cropped = True), vmin = -2, vmax = 2)
-			current_ax3[i].imshow(self.da_obj.returnHeightChange(start, stop, masked = True, cropped = True), vmin = -2, vmax = 2)
-		   
-			current_ax[i].set_xticklabels([])
-			current_ax2[i].set_xticklabels([])
-			current_ax3[i].set_xticklabels([])
+		figHourly = plt.figure(figsize=(11, 8.5))
+		figHourly.suptitle(self.lp.projectID + ' Hourly Summary')
+		gridHourly = plt.GridSpec(self.lp.numDays, int(24 / hourlyDelta) + 2, wspace=0.05, hspace=0.05)
+		bounding_ax = figHourly.add_subplot(gridHourly[:, :])
+		bounding_ax.xaxis.set_visible(False)
+		bounding_ax.set_ylabel('Day')
+		bounding_ax.set_ylim(self.lp.numDays + 0.5, 0.5)
+		bounding_ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(base=1.0))
+		bounding_ax.set_yticklabels(range(self.lp.numDays + 1))
+		sns.despine(ax=bounding_ax, left=True, bottom=True)
 
-			current_ax[i].set_yticklabels([])
-			current_ax2[i].set_yticklabels([])
-			current_ax3[i].set_yticklabels([])
-
-			current_ax[i].set_adjustable('box')
-			current_ax2[i].set_adjustable('box')
-			current_ax3[i].set_adjustable('box')
-
-		figDaily.tight_layout()
 		hourlyChangeData = []
-
+		v = 1
 		for i in range(0, self.lp.numDays):
-			for j in range(int(24/hourlyDelta)):
-				start = start_day + datetime.timedelta(hours = 24*i + j*hourlyDelta)
-				stop = start_day + datetime.timedelta(hours = 24*i + (j+1)*hourlyDelta)
+			for j in range(int(24 / hourlyDelta)):
+				start = start_day + datetime.timedelta(hours=24 * i + j * hourlyDelta)
+				stop = start_day + datetime.timedelta(hours=24 * i + (j + 1) * hourlyDelta)
 
-				hourlyChangeData.append(vars(self.da_obj.returnVolumeSummary(start,stop)))
-				hourlyChangeData[-1]['Day'] = i+1
-				hourlyChangeData[-1]['Midpoint'] = i+1 + ((j + 0.5) * hourlyDelta)/24
+				hourlyChangeData.append(vars(self.da_obj.returnVolumeSummary(start, stop)))
+				hourlyChangeData[-1]['Day'] = i + 1
+				hourlyChangeData[-1]['Midpoint'] = i + 1 + ((j + 0.5) * hourlyDelta) / 24
 				hourlyChangeData[-1]['StartTime'] = str(start)
 
 				current_ax = figHourly.add_subplot(gridHourly[i, j])
 
-				current_ax.imshow(self.da_obj.returnHeightChange(start, stop, cropped = True), vmin = -1, vmax = 1)
+				current_ax.imshow(self.da_obj.returnHeightChange(start, stop, cropped=True), vmin=-v, vmax=v)
 				current_ax.set_adjustable('box')
-				current_ax.set_xticklabels([])
-				current_ax.set_yticklabels([])
+				current_ax.tick_params(colors=[0, 0, 0, 0])
 				if i == 0:
-					current_ax.set_title(str(j*hourlyDelta) + '-' + str((j+1)*hourlyDelta))
+					current_ax.set_title(str(j * hourlyDelta) + '-' + str((j + 1) * hourlyDelta))
 
-			current_ax = figHourly.add_subplot(gridHourly[i, int(24/hourlyDelta)])
-			current_ax.imshow(self.da_obj.returnBowerLocations(stop - datetime.timedelta(hours = 24), stop, cropped = True), vmin = -1, vmax = 1)
+			current_ax = figHourly.add_subplot(gridHourly[i, -2])
+			current_ax.imshow(self.da_obj.returnBowerLocations(stop - datetime.timedelta(hours=24), stop, cropped=True), vmin=-v, vmax=v)
 			current_ax.set_adjustable('box')
-			current_ax.set_xticklabels([])
-			current_ax.set_yticklabels([])
-			if i==0:
-				current_ax.set_title('DMask')
+			current_ax.tick_params(colors=[0, 0, 0, 0])
+			if i == 0:
+				current_ax.set_title('Daily\nMask')
 
-
-			current_ax = figHourly.add_subplot(gridHourly[i, int(24/hourlyDelta)+1])
-			current_ax.imshow(self.da_obj.returnHeightChange(stop - datetime.timedelta(hours = 24), stop, cropped = True), vmin = -1, vmax = 1)
+			current_ax = figHourly.add_subplot(gridHourly[i, -1])
+			current_ax.imshow(self.da_obj.returnHeightChange(stop - datetime.timedelta(hours=24), stop, cropped=True),
+							  vmin=-v, vmax=v)
 			current_ax.set_adjustable('box')
-			current_ax.set_xticklabels([])
-			current_ax.set_yticklabels([])
-			if i==0:
-				current_ax.set_title('DChange')
+			current_ax.tick_params(colors=[0, 0, 0, 0])
+			if i == 0:
+				current_ax.set_title('Daily\nChange')
 
 		totalDT = pd.DataFrame([totalChangeData])
 		dailyDT = pd.DataFrame(dailyChangeData)
 		hourlyDT = pd.DataFrame(hourlyChangeData)
 
-		writer = pd.ExcelWriter(self.fileManager.localFigureDir + 'DataSummary.xlsx')
-		totalDT.to_excel(writer,'Total')
-		dailyDT.to_excel(writer,'Daily')
-		hourlyDT.to_excel(writer,'Hourly')
+		writer = pd.ExcelWriter(self.projFileManager.localFiguresDir + 'DataSummary.xlsx')
+		totalDT.to_excel(writer, 'Total')
+		dailyDT.to_excel(writer, 'Daily')
+		hourlyDT.to_excel(writer, 'Hourly')
 		writer.save()
 
-		volAx = figDaily.add_subplot(gridDaily[6:8, 0:self.lp.numDays*4])
-		volAx.plot(dailyDT['Midpoint'], dailyDT['bowerVolume'])
-		volAx.plot(hourlyDT['Midpoint'], hourlyDT['bowerVolume'])
-		volAx.set_ylabel('Volume Change')
-
-		bIAx = figDaily.add_subplot(gridDaily[8:10, 0:self.lp.numDays*4], sharex = volAx)
+		bottomGrid = mpl.gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gridDaily[2], hspace=0.05)
+		bIAx = figDaily.add_subplot(bottomGrid[1])
+		bIAx.axhline(linewidth=1, alpha=0.5, y=0)
 		bIAx.scatter(dailyDT['Midpoint'], dailyDT['bowerIndex'])
 		bIAx.scatter(hourlyDT['Midpoint'], hourlyDT['bowerIndex'])
 		bIAx.set_xlabel('Day')
-		bIAx.set_ylabel('Bower Index')
+		bIAx.set_ylabel('Bower\nIndex')
+		bIAx.xaxis.set_major_locator(mpl.ticker.MultipleLocator(base=1.0))
 
+		volAx = figDaily.add_subplot(bottomGrid[0], sharex=bIAx)
+		volAx.plot(dailyDT['Midpoint'], dailyDT['bowerVolume'])
+		volAx.plot(hourlyDT['Midpoint'], hourlyDT['bowerVolume'])
+		volAx.set_ylabel('Volume\nChange')
+		plt.setp(volAx.get_xticklabels(), visible=False)
 
+		figDaily.savefig(self.projFileManager.localFiguresDir + 'DailyDepthSummary.pdf')
+		figHourly.savefig(self.projFileManager.localFiguresDir + 'HourlyDepthSummary.pdf')
 
-		figDaily.savefig(self.fileManager.localFigureDir + 'DailyDepthSummary.pdf')  
-		figHourly.savefig(self.fileManager.localFigureDir + 'HourlyDepthSummary.pdf')  
+		plt.close('all')
 
-		plt.clf()
-
-	

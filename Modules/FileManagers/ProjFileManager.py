@@ -62,14 +62,14 @@ class ProjFileManager():
 			self._createDirectory(self.localMasterDir)
 			self._downloadFile(self.logfile)
 			self._downloadDirectory(self.analysisDir)
-			self._createDirectory(self.localFigureDir)
+			self._createDirectory(self.localFiguresDir)
 
 		else:
 			raise KeyError('Unknown key: ' + dtype)
 		
 	def prepareFigureAnalysis(self):
 		self._createDirectory(self.localMasterDir)
-		self._createDirectory(self.localFigureDir)
+		self._createDirectory(self.localFiguresDir)
 		self._downloadFile(self.logfile)
 		self._downloadDirectory(self.analysisDir)
 
