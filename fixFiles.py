@@ -1,6 +1,6 @@
 import os, subprocess,pdb
-from Modules.FileManager import FileManager as FM
-from Modules.LogParser import LogParser as LP
+from Modules.FileManagers.FileManager import FileManager as FM
+from Modules.DataObjects.LogParser import LogParser as LP
 
 def addPrepFiles(projectID, master_directory):
 

@@ -100,7 +100,7 @@ class HMMAnalyzer:
 			changes[diffs > threshold] += 1
 			start_data = new_data
 
-		abs_changes = changes.reshape((self.height, self,width))
+		abs_changes = changes.reshape((self.height, self.width))
 		abs_stop = stop
 		return abs_changes
 

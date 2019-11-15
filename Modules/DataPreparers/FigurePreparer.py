@@ -3,6 +3,7 @@ from Modules.DataObjects.DepthAnalyzer import DepthAnalyzer as DA
 import matplotlib.pyplot as plt
 import pandas as pd
 import datetime
+import os
 
 class FigurePreparer:
 	# This class takes in directory information and a logfile containing depth information and performs the following:
