@@ -4,6 +4,7 @@ from Modules.FileManagers.ProjFileManager import ProjFileManager as PFM
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
+import numpy as np
 import seaborn as sns
 import datetime
 import os
@@ -20,6 +21,7 @@ class FigurePreparer:
 		self.projFileManager = projFileManager
 		self.lp = LP(projFileManager.localLogfile)
 		self.da_obj = DA(projFileManager)
+		self.clusterData = self._combineVideoData()
 
 	def validateInputData(self):
 		# Needs to be modified
@@ -28,15 +30,27 @@ class FigurePreparer:
 		assert os.path.exists(self.projFileManager.localSmoothDepthFile)
 		assert os.path.exists(self.projFileManager.localTroubleshootingDir)
 		assert os.path.exists(self.projFileManager.localAnalysisDir)
-
-		self.uploads = [(self.projFileManager.localTroubleshootingDir, self.projFileManager.cloudTroubleshootingDir), 
-						(self.projFileManager.localAnalysisDir, self.projFileManager.cloudAnalysisDir)]
+		assert os.path.exists(self.projFileManager.localAllLabeledClustersFile)
+		assert os.path.exists(self.projFileManager.localTransMFile)
+		self.uploads = [(self.projFileManager.localTroubleshootingDir, self.projFileManager.cloudTroubleshootingDir, 0),
+						(self.projFileManager.localAnalysisDir, self.projFileManager.cloudAnalysisDir, 0)]
 
 	def _combineVideoData(self):
-		pass
-		
-	def _createDepthFigures(self, hourlyDelta=2):
+		# adds columns to all cluster csv
+		transM = np.load(self.projFileManager.localTransMFile)
+		clusterData = pd.read_csv(self.projFileManager.localAllLabeledClustersFile, index_col='TimeStamp')
+		if 'Y_depth' not in list(clusterData.columns):
+			clusterData['Y_depth'] = clusterData.apply(
+				lambda row: (transM[0][0] * row.Y + transM[0][1] * row.X + transM[0][2]) / (
+							transM[2][0] * row.Y + transM[2][1] * row.X + transM[2][2]), axis=1)
+		if 'X_depth' not in list(clusterData.columns):
+			clusterData['X_depth'] = clusterData.apply(
+				lambda row: (transM[1][0] * row.Y + transM[1][1] * row.X + transM[1][2]) / (
+							transM[2][0] * row.Y + transM[2][1] * row.X + transM[2][2]), axis=1)
+		clusterData.to_csv(self.projFileManager.localAllLabeledClustersFile)
+		return clusterData
 
+	def _createDepthFigures(self, hourlyDelta=2):
 		# Create summary figure of daily values
 		figDaily = plt.figure(num=1, figsize=(11, 8.5))
 		figDaily.suptitle(self.lp.projectID + ' DailySummary')

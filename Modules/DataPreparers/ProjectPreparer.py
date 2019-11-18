@@ -51,7 +51,7 @@ class ProjectPreparer():
 		self.createAnalysisUpdate('Cluster', cp_obj)
 
 	def runMLClusterClassifier(self):
-		mlc_obj = MLC(self.projFileManager, self.mlFileManager)
+		mlc_obj = MLP(self.projFileManager, self.mlFileManager)
 		mlc_obj.validateInputData()
 		mlc_obj.predictVideoLabels()
 		self.createUploadFile(mlc_obj.uploads)
@@ -61,7 +61,7 @@ class ProjectPreparer():
 		pass
 
 	def runFiguresCreation(self):
-		fc_obj =FC(self.projFileManager)
+		fc_obj =FP(self.projFileManager)
 		fc_obj.validateInputData()
 
 		self.createUploadFile(fc_obj.uploads)

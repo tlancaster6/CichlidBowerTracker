@@ -1,9 +1,9 @@
 from Modules.FileManagers.ProjFileManager import ProjFileManager as PFM
 from Modules.DataPreparers.FigurePreparer import FigurePreparer as FP
+from Modules.DataPreparers.ProjectPreparer import ProjectPreparer as PP
 
-
-lmd = '/home/tlancaster6/CichlidBowerTrackerData/'
-cmd = 'cichlidVideo:BioSci-McGrath/Apps/CichlidPiData/'
-pid = 'MC22_2'
-pfm = PFM(lmd, cmd, pid)
-fp = FP(pfm)
+pp = PP('MC22_2')
+pp.downloadData('Figures')
+fp = FP(pp.projFileManager)
+fp.validateInputData()
+fp._createDepthFigures()

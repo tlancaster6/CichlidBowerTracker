@@ -68,19 +68,19 @@ elif args.command == 'ProjectAnalysis':
 		pp_obj.runClusterAnalysis()
 
 	elif args.AnalysisType == 'MLClassification':
-		pp_obj.runMLCllasification()
+		pp_obj.runMLClusterClassifier()
 
 	elif args.AnalysisType == 'MLFishDetection':
 		pp_obj.runMLFishDetection()
 
 	elif args.AnalysisType == 'Figures':
-		pp_obj.runFigureCreation()
+		pp_obj.runFiguresCreation()
 
 	elif args.AnalysisType == 'Backup':
 		pp_obj.backupAnalysis()
 
 if args.command == 'TotalProjectAnalysis':
-	projects = parseProjects(args, )
+	projects = parseProjects(args)
 
 
 
