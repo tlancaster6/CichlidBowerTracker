@@ -1,8 +1,6 @@
 from Modules.DataObjects.LogParser import LogParser as LP
 from Modules.DataObjects.HMMAnalyzer import HMMAnalyzer as HA
-from multiprocessing.dummy import Pool as ThreadPool
 from sklearn.cluster import DBSCAN
-from sklearn.neighbors import radius_neighbors_graph
 from sklearn.neighbors import NearestNeighbors
 
 import numpy as np
