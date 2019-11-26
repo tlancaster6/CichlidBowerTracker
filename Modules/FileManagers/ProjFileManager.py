@@ -62,7 +62,7 @@ class ProjFileManager():
 			self._createDirectory(self.localMasterDir)
 			self._downloadFile(self.logfile)
 			self._downloadDirectory(self.analysisDir)
-			self._createDirectory(self.localFigureDir)
+			self._createDirectory(self.localFiguresDir)
 
 		elif dtype == 'ObjectLabeler':
 			self._createDirectory(self.localMasterDir)

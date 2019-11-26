@@ -1,6 +1,6 @@
 from Modules.DataObjects.LogParser import LogParser as LP
 from Modules.DataObjects.DepthAnalyzer import DepthAnalyzer as DA
-from Modules.FileManagers.ProjFileManager import ProjFileManager as PFM
+from Modules.DataObjects.ClusterAnalyzer import ClusterAnalyzer as CA
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
@@ -19,9 +19,9 @@ class FigurePreparer:
 	def __init__(self, projFileManager):
 		self.__version__ = '1.0.0'
 		self.projFileManager = projFileManager
-		self.lp = LP(projFileManager.localLogfile)
+		self.lp_obj = LP(projFileManager.localLogfile)
 		self.da_obj = DA(projFileManager)
-		self.clusterData = self._combineVideoData()
+		self.ca_obj = CA(projFileManager)
 
 	def validateInputData(self):
 		# Needs to be modified
@@ -35,39 +35,26 @@ class FigurePreparer:
 		self.uploads = [(self.projFileManager.localTroubleshootingDir, self.projFileManager.cloudTroubleshootingDir, 0),
 						(self.projFileManager.localAnalysisDir, self.projFileManager.cloudAnalysisDir, 0)]
 
-	def _combineVideoData(self):
-		# adds columns to all cluster csv
-		transM = np.load(self.projFileManager.localTransMFile)
-		clusterData = pd.read_csv(self.projFileManager.localAllLabeledClustersFile, index_col='TimeStamp')
-		if 'Y_depth' not in list(clusterData.columns):
-			clusterData['Y_depth'] = clusterData.apply(
-				lambda row: (transM[0][0] * row.Y + transM[0][1] * row.X + transM[0][2]) / (
-							transM[2][0] * row.Y + transM[2][1] * row.X + transM[2][2]), axis=1)
-		if 'X_depth' not in list(clusterData.columns):
-			clusterData['X_depth'] = clusterData.apply(
-				lambda row: (transM[1][0] * row.Y + transM[1][1] * row.X + transM[1][2]) / (
-							transM[2][0] * row.Y + transM[2][1] * row.X + transM[2][2]), axis=1)
-		clusterData.to_csv(self.projFileManager.localAllLabeledClustersFile)
-		return clusterData
+
 
 	def _createDepthFigures(self, hourlyDelta=2):
 		# Create summary figure of daily values
 		figDaily = plt.figure(num=1, figsize=(11, 8.5))
-		figDaily.suptitle(self.lp.projectID + ' DailySummary')
+		figDaily.suptitle(self.lp_obj.projectID + ' DailySummary')
 		gridDaily = mpl.gridspec.GridSpec(3, 1)
 
 		# Create summary figure of hourly values
 		figHourly = plt.figure(num=2, figsize=(11, 8.5))
-		figHourly.suptitle(self.lp.projectID + ' HourlySummary')
-		gridHourly = plt.GridSpec(self.lp.numDays, int(24/hourlyDelta) + 2, wspace=0.02, hspace=0.02)
+		figHourly.suptitle(self.lp_obj.projectID + ' HourlySummary')
+		gridHourly = plt.GridSpec(self.lp_obj.numDays, int(24/hourlyDelta) + 2, wspace=0.02, hspace=0.02)
 
-		start_day = self.lp.frames[0].time.replace(hour=0, minute=0, second=0, microsecond=0)
-		totalChangeData = vars(self.da_obj.returnVolumeSummary(self.lp.frames[0].time, self.lp.frames[-1].time))
+		start_day = self.lp_obj.frames[0].time.replace(hour=0, minute=0, second=0, microsecond=0)
+		totalChangeData = vars(self.da_obj.returnVolumeSummary(self.lp_obj.frames[0].time, self.lp_obj.frames[-1].time))
 
 		# Show picture of final depth
 		topGrid = mpl.gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gridDaily[0])
 		topAx1 = figDaily.add_subplot(topGrid[0])
-		topAx1_ax = topAx1.imshow(self.da_obj.returnHeight(self.lp.frames[-1].time, cropped=True), vmin=50, vmax=70)
+		topAx1_ax = topAx1.imshow(self.da_obj.returnHeight(self.lp_obj.frames[-1].time, cropped=True), vmin=50, vmax=70)
 		topAx1.set_title('Final Depth (cm)')
 		topAx1.tick_params(colors=[0, 0, 0, 0])
 		plt.colorbar(topAx1_ax, ax=topAx1)
@@ -75,24 +62,24 @@ class FigurePreparer:
 		# Show picture of total depth change
 		topAx2 = figDaily.add_subplot(topGrid[1])
 		topAx2_ax = topAx2.imshow(self.da_obj.returnHeightChange(
-			self.lp.frames[0].time, self.lp.frames[-1].time, cropped=True), vmin=-5, vmax=5)
+			self.lp_obj.frames[0].time, self.lp_obj.frames[-1].time, cropped=True), vmin=-5, vmax=5)
 		topAx2.set_title('Total Depth Change (cm)')
 		topAx2.tick_params(colors=[0, 0, 0, 0])
 		plt.colorbar(topAx2_ax, ax=topAx2)
 
 		# Show picture of pit and castle mask
 		topAx3 = figDaily.add_subplot(topGrid[2])
-		topAx3_ax = topAx3.imshow(self.da_obj.returnHeightChange(self.lp.frames[0].time, self.lp.frames[-1].time, cropped = True, masked = True), vmin = -5, vmax = 5)
+		topAx3_ax = topAx3.imshow(self.da_obj.returnHeightChange(self.lp_obj.frames[0].time, self.lp_obj.frames[-1].time, cropped = True, masked = True), vmin = -5, vmax = 5)
 		topAx3.set_title('Masked Depth Change (cm)')
 		topAx3.tick_params(colors=[0, 0, 0, 0])
 		plt.colorbar(topAx3_ax, ax=topAx3)
 
 		# Create figures and get data for daily Changes
 		dailyChangeData = []
-		w_ratios = ([1.0] * self.lp.numDays) + [0.25]
-		midGrid = mpl.gridspec.GridSpecFromSubplotSpec(3, self.lp.numDays + 1, subplot_spec=gridDaily[1], width_ratios=w_ratios)
+		w_ratios = ([1.0] * self.lp_obj.numDays) + [0.25]
+		midGrid = mpl.gridspec.GridSpecFromSubplotSpec(3, self.lp_obj.numDays + 1, subplot_spec=gridDaily[1], width_ratios=w_ratios)
 		v = 2
-		for i in range(self.lp.numDays):
+		for i in range(self.lp_obj.numDays):
 			start = start_day + datetime.timedelta(hours=24 * i)
 			stop = start_day + datetime.timedelta(hours=24 * (i + 1))
 			dailyChangeData.append(vars(self.da_obj.returnVolumeSummary(start, stop)))
@@ -111,19 +98,19 @@ class FigurePreparer:
 		plt.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=-v, vmax=v), cmap='viridis'), cax=cax)
 
 		figHourly = plt.figure(figsize=(11, 8.5))
-		figHourly.suptitle(self.lp.projectID + ' Hourly Summary')
-		gridHourly = plt.GridSpec(self.lp.numDays, int(24 / hourlyDelta) + 2, wspace=0.05, hspace=0.05)
+		figHourly.suptitle(self.lp_obj.projectID + ' Hourly Summary')
+		gridHourly = plt.GridSpec(self.lp_obj.numDays, int(24 / hourlyDelta) + 2, wspace=0.05, hspace=0.05)
 		bounding_ax = figHourly.add_subplot(gridHourly[:, :])
 		bounding_ax.xaxis.set_visible(False)
 		bounding_ax.set_ylabel('Day')
-		bounding_ax.set_ylim(self.lp.numDays + 0.5, 0.5)
+		bounding_ax.set_ylim(self.lp_obj.numDays + 0.5, 0.5)
 		bounding_ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(base=1.0))
-		bounding_ax.set_yticklabels(range(self.lp.numDays + 1))
+		bounding_ax.set_yticklabels(range(self.lp_obj.numDays + 1))
 		sns.despine(ax=bounding_ax, left=True, bottom=True)
 
 		hourlyChangeData = []
 		v = 1
-		for i in range(0, self.lp.numDays):
+		for i in range(0, self.lp_obj.numDays):
 			for j in range(int(24 / hourlyDelta)):
 				start = start_day + datetime.timedelta(hours=24 * i + j * hourlyDelta)
 				stop = start_day + datetime.timedelta(hours=24 * i + (j + 1) * hourlyDelta)
@@ -186,3 +173,8 @@ class FigurePreparer:
 
 		plt.close('all')
 
+	def _createClusterFigures(self):
+		pass
+
+	def _createOtherFigures(self):
+		pass
