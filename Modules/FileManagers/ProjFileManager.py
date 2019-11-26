@@ -62,19 +62,13 @@ class ProjFileManager():
 			self._createDirectory(self.localMasterDir)
 			self._downloadFile(self.logfile)
 			self._downloadDirectory(self.analysisDir)
-			self._createDirectory(self.localFiguresDir)
+			self._createDirectory(self.localFigureDir)
 
+		elif dtype == 'ObjectLabeler':
+			self._createDirectory(self.localMasterDir)
+			self._downloadDirectory(self.manualLabelFramesDir)
 		else:
 			raise KeyError('Unknown key: ' + dtype)
-		
-	def prepareFigureAnalysis(self):
-		self._createDirectory(self.localMasterDir)
-		self._createDirectory(self.localFiguresDir)
-		self._downloadFile(self.logfile)
-		self._downloadDirectory(self.analysisDir)
-
-	def backupFigureAnalysis(self):
-		self._uploadDirectory(self.figureDir)
 
 	def localDelete(self):
 		subprocess.run(['rm','-rf', self.localMasterDir])
@@ -94,6 +88,9 @@ class ProjFileManager():
 		videoObj.localManualLabelClipsPrefix = self.localManualLabelClipsDir + self.lp.projectID + '_' + videoObj.baseName
 		videoObj.localIntensityFile = self.localFiguresDir + videoObj.baseName + '_intensity.pdf'
 		videoObj.localTempDir = self.localTempDir + videoObj.baseName + '/'
+		videoObj.nManualLabelClips = int(self.nManualLabelClips/len(self.lp.movies))
+		videoObj.nManualLabelFrames = int(self.nManualLabelFrames/len(self.lp.movies))
+
 		self._createDirectory(videoObj.localTempDir)
 
 		return videoObj
@@ -120,7 +117,7 @@ class ProjFileManager():
 		self.allClipsDir = 'AllClips/'
 		self.localAllClipsDir = self.localMasterDir + 'AllClips/'
 		self.processedClipDir = 'ProcessedClips/'
-		self.localProcessedClipsDir = self.localMasterDir + 'AllClips/'
+		self.localProcessedClipsDir = self.localMasterDir + 'ProcessedClips/'
 		self.manualLabelClipsDir = 'MLClips/'
 		self.localManualLabelClipsDir = self.localMasterDir + 'MLClips/'
 		self.manualLabelFramesDir = 'MLFrames/'
@@ -179,13 +176,13 @@ class ProjFileManager():
 		self.delta = 1.0 # Batches to calculate clusters
 
 		# Clip creation parameters
-		self.nManualLabelClips = 400
+		self.nManualLabelClips = 1200
 		self.delta_xy = 100
 		self.delta_t = 60
 		self.smallLimit = 500
 
 		# Manual Label Frame 
-		self.nManualLabelFrames = 200
+		self.nManualLabelFrames = 500
 
 
 	def _createDirectory(self, directory):
@@ -219,7 +216,7 @@ class ProjFileManager():
 		if tar:
 			if directory[-1] == '/':
 				directory = directory[:-1]
-			subprocess.run(['tar', '-cvf', self.localMasterDir + directory + '.tar', '-C', self.localMasterDir, directory])
+			output = subprocess.run(['tar', '-cvf', self.localMasterDir + directory + '.tar', '-C', self.localMasterDir, directory], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 			command = ['rclone', 'copy', self.localMasterDir + directory + '.tar', self.cloudMasterDir, '--exclude', '.DS_Store']
 		else:
 			command = ['rclone', 'copy', self.localMasterDir + directory, self.cloudMasterDir + directory, '--exclude', '.DS_Store']

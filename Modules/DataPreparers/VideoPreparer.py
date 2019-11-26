@@ -37,6 +37,11 @@ class VideoPreparer:
 
 		return self.clusterData
 
+	def readClusterData(self):
+		self.clusterData = pd.read_csv(self.videoObj.localLabeledClustersFile, sep = ',', index_col = 'LID')
+
+		return self.clusterData
+
 	def _validateVideo(self, tol = 0.01):
 		if not os.path.isfile(self.videofile):
 			self._convertVideo(self.videofile)
@@ -49,7 +54,7 @@ class VideoPreparer:
 		new_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 		predicted_frames = int((self.videoObj.endTime - self.videoObj.startTime).total_seconds()*self.videoObj.framerate)
 
-		print('   VideoValidation: Size: ' + str((new_height,new_width)) + ',,fps: ' + str(new_framerate) + ',,Frames: ' + str(new_frames) + ',,PredictedFrames: ' + str(predicted_frames))
+		print('  VideoValidation: Size: ' + str((new_height,new_width)) + ',,fps: ' + str(new_framerate) + ',,Frames: ' + str(new_frames) + ',,PredictedFrames: ' + str(predicted_frames))
 
 		assert new_height == self.videoObj.height
 		assert new_width == self.videoObj.width
@@ -66,7 +71,7 @@ class VideoPreparer:
 
 		command = ['ffmpeg', '-r', str(self.videoObj.framerate), '-i', h264_video, '-c:v', 'copy', '-r', str(self.videoObj.framerate), mp4_video]
 		print('  VideoConversion: ' + ' '.join(command) + ',Time' + str(datetime.datetime.now()))
-		output = subprocess.run(command, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
+		output = subprocess.run(command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 		assert os.path.isfile(mp4_video)
 
 		# Ensure the conversion went ok.     
@@ -107,7 +112,7 @@ class VideoPreparer:
 			row_file = self.videoObj.localTempDir + str(row) + '.npy'
 			if os.path.isfile(row_file):
 				subprocess.run(['rm', '-f', row_file])
-		print('   ' + str(totalBlocks) + ' total blocks. On block: ', end = '', flush = True)
+		print('    ' + str(totalBlocks) + ' total blocks. On block: ', end = '', flush = True)
 		for i in range(0, totalBlocks, self.workers):
 			print(str(i) + '-' + str(min(i+self.workers, totalBlocks - 1)) + ',', end = '', flush = True)
 			data = []
@@ -133,14 +138,14 @@ class VideoPreparer:
 						assert out_data.shape == (self.videoObj.width, self.HMMsecs)
 					except AssertionError:
 						pdb.set_trace()
-			#subprocess.run(['rm', '-f', self.videoObj.localTempDir + 'Decompressed_' + str(block) + '.npy'])
+			subprocess.run(['rm', '-f', self.videoObj.localTempDir + 'Decompressed_' + str(block) + '.npy'])
 		print()
 
 	def _calculateHMM(self):
 		print('  Calculating HMMs for each row,,Time: ' + str(datetime.datetime.now())) 
 		# Calculate HMM on each block
 
-		print('   ' + str(self.videoObj.height) + ' total rows. On rows ', end = '', flush = True)
+		print('    ' + str(self.videoObj.height) + ' total rows. On rows ', end = '', flush = True)
 
 		for i in range(0, self.videoObj.height, self.workers):
 			start_row = i
@@ -245,10 +250,10 @@ class VideoPreparer:
 			else:
 				clusterData.loc[clusterData.index == LID,'ClipCreated'] = 'Yes'
 				if N < self.projFileManager.smallLimit:
-					if smallClips > self.projFileManager.nManualLabelClips/20:
+					if smallClips > self.videoObj.nManualLabelClips/20:
 						continue
 					smallClips += 1
-				if clipsCreated < self.projFileManager.nManualLabelClips:
+				if clipsCreated < self.videoObj.nManualLabelClips:
 					clusterData.loc[clusterData.index == LID,'ManualAnnotation'] = 'Yes'
 					clipsCreated += 1
 
@@ -319,13 +324,14 @@ class VideoPreparer:
 		first_frame = 0
 		if self.videoObj.startTime < self.lightsOnTime:
 			first_frame = int((self.lightsOnTime - self.videoObj.startTime).total_seconds()*self.videoObj.framerate)
+			last_frame = first_frame + int((self.lightsOffTime - self.lightsOnTime).total_seconds()*self.videoObj.framerate)
 		else:
 			first_frame = 0
-		last_frame = first_frame + int((self.lightsOffTime - self.lightsOnTime).total_seconds()*self.videoObj.framerate)
-		
+			last_frame = int((self.lightsOffTime - self.videoObj.startTime).total_seconds()*self.videoObj.framerate)
+
 		last_frame = min(self.frames, last_frame)
 
-		for i in range(self.projFileManager.nManualLabelFrames):
+		for i in range(int(self.projFileManager.nManualLabelFrames/len(self.lp.movies))):
 			frameIndex = random.randint(first_frame, last_frame)
 			cap.set(cv2.CAP_PROP_POS_FRAMES, frameIndex)
 			ret, frame = cap.read()
