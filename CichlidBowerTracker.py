@@ -75,7 +75,7 @@ elif args.command == 'ProjectAnalysis':
 		pp_obj.runMLFishDetection()
 
 	elif args.AnalysisType == 'Figures':
-		pp_obj.runFigureCreation()
+		pp_obj.runFiguresCreation()
 
 	elif args.AnalysisType == 'Backup':
 		pp_obj.backupAnalysis()
