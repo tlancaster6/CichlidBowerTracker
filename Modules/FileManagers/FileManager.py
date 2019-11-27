@@ -10,7 +10,7 @@ class FileManager():
 		# self.cloudMasterDir = self.rcloneRemote + ':McGrath/Apps/CichlidPiData/'
 		self.cloudMasterDir = self.rcloneRemote + ':BioSci-McGrath/Apps/CichlidPiData/'
 
-		self.localMasterDir = os.getenv('HOME') + '/' + 'Temp/CichlidAnalyzer/'
+		self.localMasterDir = os.getenv('HOME') + '/scratch/'
 		self.mountedDropboxMasterDir = os.getenv('HOME') + '/Dropbox (GaTech)/McGrath/Apps/CichlidPiData/'
 		
 		self.analysisDir = '__AnalysisLog/'
