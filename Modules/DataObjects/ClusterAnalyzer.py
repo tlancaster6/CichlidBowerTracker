@@ -38,7 +38,6 @@ class ClusterAnalyzer:
         self._checkTimes(t0, t1)
         df = self.clusterData[['X_depth', 'Y_Depth', 'modelAll_18_pred']]
 
-
     def returnBehaviorCounts(self, t0, t1):
         self._checkTimes(t0, t1)
 
