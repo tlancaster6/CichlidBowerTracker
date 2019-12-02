@@ -12,7 +12,7 @@ class FileManager():
 		if os.path.exists(os.getenv('HOME') + '/scratch/'):
 			self.localMasterDir = os.getenv('HOME') + '/scratch/'
 		else:
-			self.localMasterDir = os.getenv('HOME') + '/Temp/'
+			self.localMasterDir = os.getenv('HOME') + '/Temp/CichlidAnalyzer/'
 		self.mountedDropboxMasterDir = os.getenv('HOME') + '/Dropbox (GaTech)/McGrath/Apps/CichlidPiData/'
 		
 		self.analysisDir = '__AnalysisLog/'
