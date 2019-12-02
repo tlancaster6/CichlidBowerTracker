@@ -9,8 +9,10 @@ class FileManager():
 		self.rcloneRemote = 'cichlidVideo'
 		# self.cloudMasterDir = self.rcloneRemote + ':McGrath/Apps/CichlidPiData/'
 		self.cloudMasterDir = self.rcloneRemote + ':BioSci-McGrath/Apps/CichlidPiData/'
-
-		self.localMasterDir = os.getenv('HOME') + '/scratch/'
+		if os.path.exists(os.getenv('HOME') + '/scratch/'):
+			self.localMasterDir = os.getenv('HOME') + '/scratch/'
+		else:
+			self.localMasterDir = os.getenv('HOME') + '/Temp/'
 		self.mountedDropboxMasterDir = os.getenv('HOME') + '/Dropbox (GaTech)/McGrath/Apps/CichlidPiData/'
 		
 		self.analysisDir = '__AnalysisLog/'
