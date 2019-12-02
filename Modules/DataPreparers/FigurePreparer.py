@@ -1,6 +1,7 @@
 from Modules.DataObjects.LogParser import LogParser as LP
 from Modules.DataObjects.DepthAnalyzer import DepthAnalyzer as DA
 from Modules.DataObjects.ClusterAnalyzer import ClusterAnalyzer as CA
+from scipy.stats import kde
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
@@ -24,29 +25,26 @@ class FigurePreparer:
 		self.ca_obj = CA(projFileManager)
 
 	def validateInputData(self):
-		# Needs to be modified
 		assert os.path.exists(self.projFileManager.localLogfile)
 		assert os.path.exists(self.projFileManager.localFiguresDir)
 		assert os.path.exists(self.projFileManager.localSmoothDepthFile)
-		assert os.path.exists(self.projFileManager.localTroubleshootingDir)
 		assert os.path.exists(self.projFileManager.localAnalysisDir)
 		assert os.path.exists(self.projFileManager.localAllLabeledClustersFile)
 		assert os.path.exists(self.projFileManager.localTransMFile)
-		self.uploads = [(self.projFileManager.localTroubleshootingDir, self.projFileManager.cloudTroubleshootingDir, 0),
-						(self.projFileManager.localAnalysisDir, self.projFileManager.cloudAnalysisDir, 0)]
-
+		self.uploads = [(self.projFileManager.localAnalysisDir, self.projFileManager.cloudAnalysisDir, 0)]
 
 
 	def _createDepthFigures(self, hourlyDelta=2):
+		# figures based on the depth data
+
 		# Create summary figure of daily values
 		figDaily = plt.figure(num=1, figsize=(11, 8.5))
-		figDaily.suptitle(self.lp_obj.projectID + ' DailySummary')
+		figDaily.suptitle(self.lp_obj.projectID + ' Daily Depth Summary')
 		gridDaily = mpl.gridspec.GridSpec(3, 1)
 
 		# Create summary figure of hourly values
 		figHourly = plt.figure(num=2, figsize=(11, 8.5))
-		figHourly.suptitle(self.lp_obj.projectID + ' HourlySummary')
-		gridHourly = plt.GridSpec(self.lp_obj.numDays, int(24/hourlyDelta) + 2, wspace=0.02, hspace=0.02)
+		figHourly.suptitle(self.lp_obj.projectID + ' Hourly Depth Summary')
 
 		start_day = self.lp_obj.frames[0].time.replace(hour=0, minute=0, second=0, microsecond=0)
 		totalChangeData = vars(self.da_obj.returnVolumeSummary(self.lp_obj.frames[0].time, self.lp_obj.frames[-1].time))
@@ -98,7 +96,6 @@ class FigurePreparer:
 		plt.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=-v, vmax=v), cmap='viridis'), cax=cax)
 
 		figHourly = plt.figure(figsize=(11, 8.5))
-		figHourly.suptitle(self.lp_obj.projectID + ' Hourly Summary')
 		gridHourly = plt.GridSpec(self.lp_obj.numDays, int(24 / hourlyDelta) + 2, wspace=0.05, hspace=0.05)
 		bounding_ax = figHourly.add_subplot(gridHourly[:, :])
 		bounding_ax.xaxis.set_visible(False)
@@ -173,8 +170,34 @@ class FigurePreparer:
 
 		plt.close('all')
 
-	def _createClusterFigures(self):
-		pass
+	def _createClusterFigures(self, hourlyDelta=2):
+		# figures based on the cluster data
 
-	def _createOtherFigures(self):
+		# scatterplots showing the spatial distrubtion of each cluster classification each day
+		figDaily, axes = plt.subplots(10, self.lp_obj.numDays, figsize=(8.5, 11))
+		figDaily.suptitle(self.lp_obj.projectID + ' Daily Cluster Distributions')
+		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
+		limits = (int(self.ca_obj.clusterData.X_depth.max()), int(self.ca_obj.clusterData.Y_depth.max()))
+		for i in range(self.lp_obj.numDays):
+			t1 = t0 + datetime.timedelta(hours=24)
+			df_slice = self.ca_obj.clusterData[['X_depth', 'Y_depth', 'modelAll_18_pred']].dropna().sort_index()[t0:t1]
+			for j, bid in enumerate(self.ca_obj.bids):
+				sns.scatterplot(x='X_depth', y='Y_depth', data=df_slice[df_slice.modelAll_18_pred == bid],
+								ax=axes[j, i], s=10, linewidth=0, alpha=0.1)
+				axes[j, i].tick_params(colors=[0, 0, 0, 0])
+				axes[j, i].set(xlabel=None, ylabel=None, aspect='equal', xlim=(0, limits[0]), ylim=(0, limits[1]))
+				if j == 0:
+					axes[0, i].set_title('day %i' % (i + 1))
+				if i == 0:
+					axes[j, 0].set_ylabel(str(bid))
+			t0 = t1
+		figDaily.savefig(self.projFileManager.localFiguresDir + 'DailyClusterDistributions.pdf')
+		plt.close(fig=figDaily)
+
+
+
+	def _createComparativeFigures(self):
+
+
+
 		pass

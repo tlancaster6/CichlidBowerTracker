@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import datetime
 import sys
+import math
 
 from Modules.DataObjects.LogParser import LogParser as LP
 
@@ -32,14 +33,14 @@ class ClusterAnalyzer:
                 lambda row: (self.transM[1][0] * row.Y + self.transM[1][1] * row.X + self.transM[1][2]) / (
                         self.transM[2][0] * row.Y + self.transM[2][1] * row.X + self.transM[2][2]), axis=1)
         self.clusterData.round({'X_Depth': 0, 'Y_Depth': 0})
+
         self.clusterData.to_csv(self.projFileManager.localAllLabeledClustersFile)
 
-    def returnClusterArrays(self, t0, t1):
+    def returnClusterCounts(self, t0, t1):
         self._checkTimes(t0, t1)
-        df = self.clusterData[['X_depth', 'Y_Depth', 'modelAll_18_pred']]
-
-    def returnBehaviorCounts(self, t0, t1):
-        self._checkTimes(t0, t1)
+        df_slice = self.clusterData.loc[t0:t1]
+        row = df_slice.modelAll_18_pred.value_counts().to_dict
+        return row
 
     def _checkTimes(self, t0, t1=None):
         if t1 is None:
