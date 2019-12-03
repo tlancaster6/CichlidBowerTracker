@@ -180,10 +180,11 @@ class FigurePreparer:
 		limits = (int(self.ca_obj.clusterData.X_depth.max()), int(self.ca_obj.clusterData.Y_depth.max()))
 		for i in range(self.lp_obj.numDays):
 			t1 = t0 + datetime.timedelta(hours=24)
-			df_slice = self.ca_obj.clusterData[['X_depth', 'Y_depth', 'modelAll_18_pred']].dropna().sort_index()[t0:t1]
+			df_slice = self.ca_obj.sliceDataframe(t0=t0, t1=t1)
 			for j, bid in enumerate(self.ca_obj.bids):
-				sns.scatterplot(x='X_depth', y='Y_depth', data=df_slice[df_slice.modelAll_18_pred == bid],
-								ax=axes[j, i], s=10, linewidth=0, alpha=0.1)
+				df_slice_slice = self.ca_obj.sliceDataframe(input_frame=df_slice, bid=bid)
+				sns.scatterplot(x='X_depth', y='Y_depth', data=df_slice_slice, ax=axes[j, i], s=10,
+								linewidth=0, alpha=0.1)
 				axes[j, i].tick_params(colors=[0, 0, 0, 0])
 				axes[j, i].set(xlabel=None, ylabel=None, aspect='equal', xlim=(0, limits[0]), ylim=(0, limits[1]))
 				if j == 0:
@@ -193,8 +194,6 @@ class FigurePreparer:
 			t0 = t1
 		figDaily.savefig(self.projFileManager.localFiguresDir + 'DailyClusterDistributions.pdf')
 		plt.close(fig=figDaily)
-
-
 
 	def _createComparativeFigures(self):
 
