@@ -1,0 +1,15 @@
+#PBS -N ClusterAnalysis
+#PBS -l nodes=1:ppn=2
+#PBS -l walltime=3:00:00:00
+#PBS -q bioforce-6
+#PBS -j oe
+#PBS -o ClusterAnalysis.out
+#PBS -m abe
+#PBS -M tlancaster6@gatech.edu
+
+
+cd ~/data/CichlidBowerTracker
+echo "Started on `/bin/hostname`"
+module load anaconda3
+source activate CichlidBowerTracker
+python CichlidBowerTracker.py ProjectAnalysis Cluster TI2_5_newtray -w 2
