@@ -1,7 +1,8 @@
 from Modules.DataObjects.LogParser import LogParser as LP
 from Modules.DataObjects.DepthAnalyzer import DepthAnalyzer as DA
 from Modules.DataObjects.ClusterAnalyzer import ClusterAnalyzer as CA
-from scipy.stats import kde
+
+from matplotlib import (cm, colors, gridspec, ticker)
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
@@ -40,7 +41,7 @@ class FigurePreparer:
 		# Create summary figure of daily values
 		figDaily = plt.figure(num=1, figsize=(11, 8.5))
 		figDaily.suptitle(self.lp_obj.projectID + ' Daily Depth Summary')
-		gridDaily = mpl.gridspec.GridSpec(3, 1)
+		gridDaily = gridspec.GridSpec(3, 1)
 
 		# Create summary figure of hourly values
 		figHourly = plt.figure(num=2, figsize=(11, 8.5))
@@ -50,7 +51,7 @@ class FigurePreparer:
 		totalChangeData = vars(self.da_obj.returnVolumeSummary(self.lp_obj.frames[0].time, self.lp_obj.frames[-1].time))
 
 		# Show picture of final depth
-		topGrid = mpl.gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gridDaily[0])
+		topGrid = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gridDaily[0])
 		topAx1 = figDaily.add_subplot(topGrid[0])
 		topAx1_ax = topAx1.imshow(self.da_obj.returnHeight(self.lp_obj.frames[-1].time, cropped=True), vmin=50, vmax=70)
 		topAx1.set_title('Final Depth (cm)')
@@ -75,7 +76,7 @@ class FigurePreparer:
 		# Create figures and get data for daily Changes
 		dailyChangeData = []
 		w_ratios = ([1.0] * self.lp_obj.numDays) + [0.25]
-		midGrid = mpl.gridspec.GridSpecFromSubplotSpec(3, self.lp_obj.numDays + 1, subplot_spec=gridDaily[1], width_ratios=w_ratios)
+		midGrid = gridspec.GridSpecFromSubplotSpec(3, self.lp_obj.numDays + 1, subplot_spec=gridDaily[1], width_ratios=w_ratios)
 		v = 2
 		for i in range(self.lp_obj.numDays):
 			start = start_day + datetime.timedelta(hours=24 * i)
@@ -93,7 +94,7 @@ class FigurePreparer:
 			[ax.tick_params(colors=[0, 0, 0, 0]) for ax in current_axs]
 			[ax.set_adjustable('box') for ax in current_axs]
 		cax = figDaily.add_subplot(midGrid[:, -1])
-		plt.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=-v, vmax=v), cmap='viridis'), cax=cax)
+		plt.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-v, vmax=v), cmap='viridis'), cax=cax)
 
 		figHourly = plt.figure(figsize=(11, 8.5))
 		gridHourly = plt.GridSpec(self.lp_obj.numDays, int(24 / hourlyDelta) + 2, wspace=0.05, hspace=0.05)
@@ -101,7 +102,7 @@ class FigurePreparer:
 		bounding_ax.xaxis.set_visible(False)
 		bounding_ax.set_ylabel('Day')
 		bounding_ax.set_ylim(self.lp_obj.numDays + 0.5, 0.5)
-		bounding_ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(base=1.0))
+		bounding_ax.yaxis.set_major_locator(ticker.MultipleLocator(base=1.0))
 		bounding_ax.set_yticklabels(range(self.lp_obj.numDays + 1))
 		sns.despine(ax=bounding_ax, left=True, bottom=True)
 
@@ -150,14 +151,14 @@ class FigurePreparer:
 		hourlyDT.to_excel(writer, 'Hourly')
 		writer.save()
 
-		bottomGrid = mpl.gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gridDaily[2], hspace=0.05)
+		bottomGrid = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gridDaily[2], hspace=0.05)
 		bIAx = figDaily.add_subplot(bottomGrid[1])
 		bIAx.axhline(linewidth=1, alpha=0.5, y=0)
 		bIAx.scatter(dailyDT['Midpoint'], dailyDT['bowerIndex'])
 		bIAx.scatter(hourlyDT['Midpoint'], hourlyDT['bowerIndex'])
 		bIAx.set_xlabel('Day')
 		bIAx.set_ylabel('Bower\nIndex')
-		bIAx.xaxis.set_major_locator(mpl.ticker.MultipleLocator(base=1.0))
+		bIAx.xaxis.set_major_locator(ticker.MultipleLocator(base=1.0))
 
 		volAx = figDaily.add_subplot(bottomGrid[0], sharex=bIAx)
 		volAx.plot(dailyDT['Midpoint'], dailyDT['bowerVolume'])
@@ -170,32 +171,78 @@ class FigurePreparer:
 
 		plt.close('all')
 
-	def _createClusterFigures(self, hourlyDelta=2):
+	def _createClusterFigures(self):
 		# figures based on the cluster data
 
-		# scatterplots showing the spatial distrubtion of each cluster classification each day
-		figDaily, axes = plt.subplots(10, self.lp_obj.numDays, figsize=(8.5, 11))
-		figDaily.suptitle(self.lp_obj.projectID + ' Daily Cluster Distributions')
+		# define custom colormaps, colors, etc.
+		viridis = cm.get_cmap('viridis', 512)
+		viridis_upper = colors.ListedColormap(viridis(np.linspace(0.5, 1, 256)))
+		viridis_lower = colors.ListedColormap(viridis(np.flip(np.linspace(0, 0.5, 256))))
+
+		# semi-transparent scatterplots showing the spatial distrubtion of each cluster classification each day
+		fig, axes = plt.subplots(10, self.lp_obj.numDays, figsize=(8.5, 11))
+		fig.suptitle(self.lp_obj.projectID + ' Daily Cluster Distributions')
 		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
-		limits = (int(self.ca_obj.clusterData.X_depth.max()), int(self.ca_obj.clusterData.Y_depth.max()))
+		df_cropped = self.ca_obj.sliceDataframe(cropped=True)
+		x_limits = (df_cropped.X_depth.min(), df_cropped.X_depth.max())
+		y_limits = (df_cropped.Y_depth.max(), df_cropped.Y_depth.min())
 		for i in range(self.lp_obj.numDays):
 			t1 = t0 + datetime.timedelta(hours=24)
-			df_slice = self.ca_obj.sliceDataframe(t0=t0, t1=t1)
+			df_slice = self.ca_obj.sliceDataframe(t0=t0, t1=t1, input_frame=df_cropped)
 			for j, bid in enumerate(self.ca_obj.bids):
 				df_slice_slice = self.ca_obj.sliceDataframe(input_frame=df_slice, bid=bid)
 				sns.scatterplot(x='X_depth', y='Y_depth', data=df_slice_slice, ax=axes[j, i], s=10,
 								linewidth=0, alpha=0.1)
 				axes[j, i].tick_params(colors=[0, 0, 0, 0])
-				axes[j, i].set(xlabel=None, ylabel=None, aspect='equal', xlim=(0, limits[0]), ylim=(0, limits[1]))
+				axes[j, i].set(xlabel=None, ylabel=None, aspect='equal', xlim=x_limits, ylim=y_limits)
 				if j == 0:
 					axes[0, i].set_title('day %i' % (i + 1))
 				if i == 0:
 					axes[j, 0].set_ylabel(str(bid))
 			t0 = t1
-		figDaily.savefig(self.projFileManager.localFiguresDir + 'DailyClusterDistributions.pdf')
-		plt.close(fig=figDaily)
+		fig.savefig(self.projFileManager.localFiguresDir + 'DailyClusterDistributions.pdf')
+		plt.close(fig=fig)
 
-	def _createComparativeFigures(self):
+		#
+		fig, axes = plt.subplots(2, self.lp_obj.numDays, figsize=(1.5 * self.lp_obj.numDays, 4))
+		fig.suptitle(self.lp_obj.projectID + ' Daily Scoop Spit Heatmaps')
+		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
+		extent = [x_limits[0], x_limits[1], y_limits[0], y_limits[1]]
+		c_vmax = 0
+		p_vmax = 0
+		subplot_handles = []
+		for i in range(self.lp_obj.numDays):
+			t1 = t0 + datetime.timedelta(hours=24)
+			z = self.ca_obj.returnClusterKDE(t0=t0, t1=t1, bid='c', cropped=True)
+			c_vmax = np.max(z) if np.max(z) > c_vmax else c_vmax
+			c_im = axes[0, i].imshow(z, cmap=viridis_lower, interpolation='none', extent=extent)
+			axes[0, i].set(title='day %i' % (i + 1), xlabel=None, ylabel=None, aspect='equal')
+			axes[0, i].tick_params(colors=[0, 0, 0, 0])
+			z = self.ca_obj.returnClusterKDE(t0=t0, t1=t1, bid='p', cropped=True)
+			p_vmax = np.max(z) if np.max(z) > p_vmax else p_vmax
+			p_im = axes[1, i].imshow(z, cmap=viridis_upper, interpolation='none', extent=extent)
+			subplot_handles.append([c_im, p_im])
+			axes[1, i].set(xlabel=None, ylabel=None, aspect='equal')
+			axes[1, i].tick_params(colors=[0, 0, 0, 0])
+			t0 = t1
+		for c_im, p_im in subplot_handles:
+			c_im.set_clim(0, c_vmax)
+			p_im.set_clim(0, p_vmax)
+		axes[0, 0].set_ylabel('build scoops')
+		axes[1, 0].set_ylabel('build spits')
+		fig.subplots_adjust(left=0.05, right=0.90, top=0.85, bottom=0.05)
+		cbar_axes = (fig.add_axes([0.92, 0.5, 0.01, 0.35]), fig.add_axes([0.92, 0.05, 0.01, 0.35]))
+		cbar = fig.colorbar(subplot_handles[0][0], cax=cbar_axes[0])
+		cbar.set_label(r'build scoops per $cm^2$')
+		cbar = fig.colorbar(subplot_handles[0][1], cax=cbar_axes[1])
+		cbar.set_label(r'build spits per $cm^2$')
+		fig.savefig(self.projFileManager.localFiguresDir + 'DailyScoopSpitHeatmaps.pdf')
+		plt.close(fig=fig)
+
+
+
+	def _createCombinedFigures(self):
+		# create figures based on a combination of cluster and depth data
 
 
 
