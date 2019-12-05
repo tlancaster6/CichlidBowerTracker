@@ -1,9 +1,12 @@
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import KernelDensity
+from skimage import morphology
 import datetime
 import sys
-
+from skimage.morphology import binary_opening as opening
+from skimage.morphology import binary_closing as closing
+from skimage.morphology import disk
 from Modules.DataObjects.LogParser import LogParser as LP
 
 
@@ -67,19 +70,34 @@ class ClusterAnalyzer:
             cell = df_slice.modelAll_18_pred.count()
             return cell
 
-    def returnClusterKDE(self, t0, t1, bid, xbins=100, ybins=100, cropped=False, bandwidth=2.0, **kwargs):
+    def returnClusterKDE(self, t0, t1, bid, cropped=False, bandwidth=2.0, **kwargs):
         df_slice = self.sliceDataframe(t0=t0, t1=t1, bid=bid, cropped=cropped, columns=['X_depth', 'Y_depth'])
         n_events = len(df_slice.index)
-        # xbins = int(np.round((self.tray_r[3] - self.tray_r[1]) * self.projFileManager.pixelLength))
-        # ybins = int(np.round((self.tray_r[2] - self.tray_r[0]) * self.projFileManager.pixelLength))
-        xx, yy = np.mgrid[self.tray_r[1]:self.tray_r[3]:xbins * 1j, self.tray_r[0]:self.tray_r[2]:ybins * 1j]
+        x_bins = int(self.tray_r[3] - self.tray_r[1])
+        y_bins = int(self.tray_r[2] - self.tray_r[0])
+        xx, yy = np.mgrid[self.tray_r[1]:self.tray_r[3]:x_bins * 1j, self.tray_r[0]:self.tray_r[2]:y_bins * 1j]
         xy_sample = np.vstack([yy.ravel(), xx.ravel()]).T
         xy_train = df_slice.to_numpy()
         kde = KernelDensity(bandwidth=bandwidth, **kwargs).fit(xy_train)
-        bin_width = ((self.tray_r[3] - self.tray_r[1]) * self.projFileManager.pixelLength)/xbins
-        bin_height = ((self.tray_r[2] - self.tray_r[0]) * self.projFileManager.pixelLength)/ybins
-        z = np.exp(kde.score_samples(xy_sample)).reshape(xx.shape) * n_events
+        z = np.exp(kde.score_samples(xy_sample)).reshape(xx.shape)
+        z = (z * n_events) / (z.sum() * (self.projFileManager.pixelLength ** 2))
         return z
+
+    def returnBowerLocations(self, z_scoop, z_spit, time_change):
+        daily_threshold = 0.4
+        min_pixels = 1000
+        morph_radius = 10
+
+        scoop_binary = np.where(z_scoop > daily_threshold, 1, 0).astype(bool)
+        scoop_binary = closing(opening(scoop_binary, disk(morph_radius)), disk(morph_radius))
+        scoop_binary = morphology.remove_small_objects(scoop_binary, min_pixels).astype(int)
+
+        spit_binary = np.where(z_spit > daily_threshold, 1, 0).astype(bool)
+        spit_binary = closing(opening(spit_binary, disk(morph_radius)), disk(morph_radius))
+        spit_binary = morphology.remove_small_objects(spit_binary, min_pixels).astype(int)
+
+        bowers = spit_binary - scoop_binary
+        return bowers
 
     def _checkTimes(self, t0, t1=None):
         if t1 is None:
@@ -92,4 +110,3 @@ class ClusterAnalyzer:
         if t0 > t1:
             print('Warning: Second timepoint ' + str(t1) + ' is earlier than first timepoint ' + str(t0),
                   file=sys.stderr)
-

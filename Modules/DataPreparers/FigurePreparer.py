@@ -174,11 +174,6 @@ class FigurePreparer:
 	def _createClusterFigures(self):
 		# figures based on the cluster data
 
-		# define custom colormaps, colors, etc.
-		viridis = cm.get_cmap('viridis', 512)
-		viridis_upper = colors.ListedColormap(viridis(np.linspace(0.5, 1, 256)))
-		viridis_lower = colors.ListedColormap(viridis(np.flip(np.linspace(0, 0.5, 256))))
-
 		# semi-transparent scatterplots showing the spatial distrubtion of each cluster classification each day
 		fig, axes = plt.subplots(10, self.lp_obj.numDays, figsize=(8.5, 11))
 		fig.suptitle(self.lp_obj.projectID + ' Daily Cluster Distributions')
@@ -203,39 +198,40 @@ class FigurePreparer:
 		fig.savefig(self.projFileManager.localFiguresDir + 'DailyClusterDistributions.pdf')
 		plt.close(fig=fig)
 
-		#
+		# heatmaps of the estimated daily scoop and spit areal densities
 		fig, axes = plt.subplots(2, self.lp_obj.numDays, figsize=(1.5 * self.lp_obj.numDays, 4))
 		fig.suptitle(self.lp_obj.projectID + ' Daily Scoop Spit Heatmaps')
 		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
 		extent = [x_limits[0], x_limits[1], y_limits[0], y_limits[1]]
-		c_vmax = 0
-		p_vmax = 0
+		vmax = 0
+		cbar_reference = None
 		subplot_handles = []
 		for i in range(self.lp_obj.numDays):
 			t1 = t0 + datetime.timedelta(hours=24)
-			z = self.ca_obj.returnClusterKDE(t0=t0, t1=t1, bid='c', cropped=True)
-			c_vmax = np.max(z) if np.max(z) > c_vmax else c_vmax
-			c_im = axes[0, i].imshow(z, cmap=viridis_lower, interpolation='none', extent=extent)
+			z_scoop = self.ca_obj.returnClusterKDE(t0=t0, t1=t1, bid='c', cropped=True)
+			z_spit = self.ca_obj.returnClusterKDE(t0=t0, t1=t1, bid='p', cropped=True)
+			z = z_spit - z_scoop
+			im = axes[0, i].imshow(z, cmap='viridis', interpolation='none', extent=extent)
+			subplot_handles.append(im)
 			axes[0, i].set(title='day %i' % (i + 1), xlabel=None, ylabel=None, aspect='equal')
 			axes[0, i].tick_params(colors=[0, 0, 0, 0])
-			z = self.ca_obj.returnClusterKDE(t0=t0, t1=t1, bid='p', cropped=True)
-			p_vmax = np.max(z) if np.max(z) > p_vmax else p_vmax
-			p_im = axes[1, i].imshow(z, cmap=viridis_upper, interpolation='none', extent=extent)
-			subplot_handles.append([c_im, p_im])
+			if np.max(np.abs(z)) > vmax:
+				vmax = np.max(np.abs(z))
+				cbar_reference = im
+			bowers = self.ca_obj.returnBowerLocations(z_scoop, z_spit, t1-t0)
+			axes[1, i].imshow(bowers, cmap='viridis', extent=extent, vmin=-1, vmax=1)
 			axes[1, i].set(xlabel=None, ylabel=None, aspect='equal')
 			axes[1, i].tick_params(colors=[0, 0, 0, 0])
 			t0 = t1
-		for c_im, p_im in subplot_handles:
-			c_im.set_clim(0, c_vmax)
-			p_im.set_clim(0, p_vmax)
-		axes[0, 0].set_ylabel('build scoops')
-		axes[1, 0].set_ylabel('build spits')
-		fig.subplots_adjust(left=0.05, right=0.90, top=0.85, bottom=0.05)
-		cbar_axes = (fig.add_axes([0.92, 0.5, 0.01, 0.35]), fig.add_axes([0.92, 0.05, 0.01, 0.35]))
-		cbar = fig.colorbar(subplot_handles[0][0], cax=cbar_axes[0])
-		cbar.set_label(r'build scoops per $cm^2$')
-		cbar = fig.colorbar(subplot_handles[0][1], cax=cbar_axes[1])
-		cbar.set_label(r'build spits per $cm^2$')
+		for im in subplot_handles:
+			im.set_clim(-vmax, vmax)
+		cbar = fig.colorbar(cbar_reference, ax=axes[0, :].tolist(), shrink=0.7)
+		cbar.set_label(r'$spits/cm^2$ - $scoops/cm^2$')
+		cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-1, vmax=1), cmap=cm.get_cmap('viridis', 3)),
+					 ax=axes[1, :].tolist(), shrink=0.7)
+		cbar.set_label('bower region')
+		cbar.set_ticks([-1, 0, 1])
+
 		fig.savefig(self.projFileManager.localFiguresDir + 'DailyScoopSpitHeatmaps.pdf')
 		plt.close(fig=fig)
 
