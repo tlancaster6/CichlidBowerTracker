@@ -5,11 +5,10 @@ from Modules.FileManagers.mlFileManager import MLFileManager as MLFM
 class FileManager():
 	def __init__(self):
 		self.system = 'computer' # Initially assume  that we are on a laptop/desktop/server
-
 		self.rcloneRemote = 'cichlidVideo'
 		# self.cloudMasterDir = self.rcloneRemote + ':McGrath/Apps/CichlidPiData/'
 		self.cloudMasterDir = self.rcloneRemote + ':BioSci-McGrath/Apps/CichlidPiData/'
-		if os.path.exists(os.getenv('HOME') + '/scratch/'):
+		if 'pace' in os.uname()[1]:
 			self.localMasterDir = os.getenv('HOME') + '/scratch/'
 		else:
 			self.localMasterDir = os.getenv('HOME') + '/Temp/CichlidAnalyzer/'

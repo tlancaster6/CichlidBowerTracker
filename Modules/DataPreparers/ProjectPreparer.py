@@ -19,6 +19,7 @@ class ProjectPreparer():
 		self.mlFileManager = self.fileManager.retMLFileManager() 
 
 	def downloadData(self, dtype):
+		assert self.projFileManager.node_type == 'datamover node', 'Error: all data downloads should be performed on a datamover node'
 		self.fileManager.createDirs()
 		self.projFileManager.downloadData(dtype)
 		if dtype in ['Download', 'MLClassification']:

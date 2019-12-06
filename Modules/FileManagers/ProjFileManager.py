@@ -10,7 +10,7 @@ class ProjFileManager():
 		
 		self._createFileDirectoryNames()		
 		self._createParameters()
-
+		self._identifyNodeType()
 
 	def downloadData(self, dtype):
 
@@ -227,3 +227,18 @@ class ProjFileManager():
 			print(output.stderr)
 			pdb.set_trace()
 			raise Exception('rclone was not able to sync ' + directory)
+
+	def _identifyNodeType(self):
+		self.node_name = os.uname()[1]
+		if 'lawn' in self.node_name:
+			self.node_type = 'lawn'
+		elif 'login7-d' in self.node_name:
+			self.node_type = 'RHEL7 headnode'
+		elif 'login-s' in self.node_name:
+			self.node_type = 'RHEL6 headnode'
+		elif 'rich' in self.node_name:
+			self.node_type = 'datamover node'
+		elif 'pace' in self.node_name:
+			self.node_type = 'compute node'
+		else:
+			self.node_type = 'unknown'

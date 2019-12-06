@@ -46,7 +46,8 @@ class ClusterPreparer():
 	def runClusterAnalysis(self):
 		clusterData = []
 		self.vp_objs = []
-		for index in range(len(self.lp.movies)):
+		n_movies = len(self.lp.movies)
+		for index in range(n_movies):
 			print('Processing video: ' + self.lp.movies[index].mp4_file + ',,Time: ' + str(datetime.datetime.now()))
 			self.vp_objs.append(VP(self.projFileManager, index, self.workers))
 			clusterData.append(self.vp_objs[index].processVideo())
