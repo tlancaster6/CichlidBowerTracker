@@ -152,12 +152,22 @@ class ProjFileManager():
 	def _createParameters(self):
 
 		# Depth related parameters
-		self.hourlyThreshold = 0.2
-		self.dailyThreshold = 0.4
-		self.totalThreshold = 1.0
+		self.hourlyDepthThreshold = 0.2	 # cm
+		self.dailyDepthThreshold = 0.4   # cm
+		self.totalDepthThreshold = 1.0   # cm
+
+		# Cluster related parameters
+		self.hourlyClusterThreshold = 0.1  # events/cm^2
+		self.dailyClusterThreshold = 0.2   # events/cm^2
+		self.totalClusterThreshold = 0.5   # events/cm^2
+
+		# Parameters related to cluster and depth
 		self.hourlyMinPixels = 1000
 		self.dailyMinPixels = 1000
 		self.totalMinPixels = 1000
+		self.hourlyDenoiseRadius = 5
+		self.dailyDenoiseRadius = 5
+		self.totalDenoiseRadius = 5
 		self.pixelLength = 0.1030168618 # cm / pixel
 		self.bowerIndexFraction = 0.1
 

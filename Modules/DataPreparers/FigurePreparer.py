@@ -127,7 +127,7 @@ class FigurePreparer:
 					current_ax.set_title(str(j * hourlyDelta) + '-' + str((j + 1) * hourlyDelta))
 
 			current_ax = figHourly.add_subplot(gridHourly[i, -2])
-			current_ax.imshow(self.da_obj.returnBowerLocations(stop - datetime.timedelta(hours=24), stop, cropped=True), vmin=-v, vmax=v)
+			current_ax.imshow(self.da_obj.returnBowerLocations(stop - datetime.timedelta(hours=24), stop, cropped=True, denoise=True), vmin=-v, vmax=v)
 			current_ax.set_adjustable('box')
 			current_ax.tick_params(colors=[0, 0, 0, 0])
 			if i == 0:
@@ -202,7 +202,6 @@ class FigurePreparer:
 		fig, axes = plt.subplots(2, self.lp_obj.numDays, figsize=(1.5 * self.lp_obj.numDays, 4))
 		fig.suptitle(self.lp_obj.projectID + ' Daily Scoop Spit Heatmaps')
 		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
-		extent = [x_limits[0], x_limits[1], y_limits[0], y_limits[1]]
 		vmax = 0
 		cbar_reference = None
 		subplot_handles = []
@@ -211,15 +210,15 @@ class FigurePreparer:
 			z_scoop = self.ca_obj.returnClusterKDE(t0=t0, t1=t1, bid='c', cropped=True)
 			z_spit = self.ca_obj.returnClusterKDE(t0=t0, t1=t1, bid='p', cropped=True)
 			z = z_spit - z_scoop
-			im = axes[0, i].imshow(z, cmap='viridis', interpolation='none', extent=extent)
+			im = axes[0, i].imshow(z, cmap='viridis', interpolation='none')
 			subplot_handles.append(im)
 			axes[0, i].set(title='day %i' % (i + 1), xlabel=None, ylabel=None, aspect='equal')
 			axes[0, i].tick_params(colors=[0, 0, 0, 0])
 			if np.max(np.abs(z)) > vmax:
 				vmax = np.max(np.abs(z))
 				cbar_reference = im
-			bowers = self.ca_obj.returnBowerLocations(z_scoop, z_spit, t1-t0)
-			axes[1, i].imshow(bowers, cmap='viridis', extent=extent, vmin=-1, vmax=1)
+			bowers = self.ca_obj.returnBowerLocations(t0, t1, denoise=True, cropped=True)
+			axes[1, i].imshow(bowers, cmap='viridis', vmin=-1, vmax=1)
 			axes[1, i].set(xlabel=None, ylabel=None, aspect='equal')
 			axes[1, i].tick_params(colors=[0, 0, 0, 0])
 			t0 = t1
@@ -232,7 +231,7 @@ class FigurePreparer:
 		cbar.set_label('bower region')
 		cbar.set_ticks([-1, 0, 1])
 
-		fig.savefig(self.projFileManager.localFiguresDir + 'DailyScoopSpitHeatmaps.pdf')
+		fig.savefig(self.projFileManager.localFiguresDir + 'DailyScoopSpitDensities.pdf')
 		plt.close(fig=fig)
 
 
@@ -240,6 +239,66 @@ class FigurePreparer:
 	def _createCombinedFigures(self):
 		# create figures based on a combination of cluster and depth data
 
+		# plot overlap of daily bower regions identified from depth and cluster data
+		fig, axes = plt.subplots(3, self.lp_obj.numDays, figsize=(1.5 * self.lp_obj.numDays, 6))
+		fig.suptitle(self.lp_obj.projectID + ' Bower Identification Consistency')
+		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
+		for i in range(self.lp_obj.numDays):
+			t1 = t0 + datetime.timedelta(hours=24)
 
+			depth_bowers = self.da_obj.returnBowerLocations(t0, t1, denoise=True, cropped=True)
+			axes[0, i].imshow(depth_bowers, cmap='viridis', vmin=-1, vmax=1)
+			axes[0, i].set(xlabel=None, ylabel=None, aspect='equal')
+			axes[0, i].tick_params(colors=[0, 0, 0, 0])
 
-		pass
+			cluster_bowers = self.ca_obj.returnBowerLocations(t0, t1, denoise=True, cropped=True)
+			axes[1, i].imshow(cluster_bowers, cmap='viridis', vmin=-1, vmax=1)
+			axes[1, i].set(xlabel=None, ylabel=None, aspect='equal')
+			axes[1, i].tick_params(colors=[0, 0, 0, 0])
+
+			bower_intersection = np.where((depth_bowers == cluster_bowers) & (depth_bowers != 0), True, False)
+			bower_intersection_area = np.count_nonzero(bower_intersection)
+			bower_union = np.where((depth_bowers != 0) | (cluster_bowers != 0), True, False)
+			bower_union_area = np.count_nonzero(bower_union)
+			if bower_intersection_area == bower_union_area == 0:
+				similarity = 1.0
+			elif (bower_intersection_area == 0) | (bower_union_area == 0):
+				similarity = 0.0
+			else:
+				similarity = bower_intersection_area / bower_union_area
+
+			axes[2, i].imshow(-1 *((2 * bower_intersection) - bower_union), cmap='bwr', vmin=-1, vmax=1)
+			axes[2, i].set(xlabel='J = {0:.3f}'.format(similarity), ylabel=None, aspect='equal')
+			axes[2, i].tick_params(colors=[0, 0, 0, 0])
+
+			t0 = t1
+
+		axes[0, 0].set_ylabel('Depth Bowers')
+		axes[1, 0].set_ylabel('Cluster Bowers')
+		axes[2, 0].set_ylabel('Overlap')
+
+		cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-1, vmax=1), cmap=cm.get_cmap('viridis', 3)),
+							ax=axes[0, :].tolist(), shrink=0.7)
+		cbar.set_label('bower region')
+		cbar.set_ticks([-1, 0, 1])
+		cbar.set_ticklabels(['-', '0', '+'])
+
+		cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-1, vmax=1), cmap=cm.get_cmap('viridis', 3)),
+							ax=axes[1, :].tolist(), shrink=0.7)
+		cbar.set_label('bower region')
+		cbar.set_ticks([-1, 0, 1])
+		cbar.set_ticklabels(['-', '0', '+'])
+
+		cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-1, vmax=1), cmap=cm.get_cmap('bwr', 3)),
+							ax=axes[2, :].tolist(), shrink=0.7)
+		cbar.set_label('Labels Agree?')
+		cbar.set_ticks([-1, 1])
+		cbar.set_ticklabels(['Y', 'N'])
+
+		fig.savefig(self.projFileManager.localFiguresDir + 'BowerIdentificationConsistency.pdf')
+		plt.close(fig=fig)
+
+	def _createAllFigures(self, hourlyDelta=2):
+		self._createCombinedFigures()
+		self._createClusterFigures()
+		self._createDepthFigures()

@@ -4,13 +4,16 @@ from skimage import morphology
 from types import SimpleNamespace
 import datetime
 import sys
+from skimage.morphology import binary_opening as opening
+from skimage.morphology import binary_closing as closing
+from skimage.morphology import disk
 
 np.warnings.filterwarnings('ignore')
 
 class DepthAnalyzer():
-	def __init__(self, fileManager):
-		self.fileManager = fileManager
-		self.lp = LP(self.fileManager.localLogfile)
+	def __init__(self, projFileManager):
+		self.projFileManager = projFileManager
+		self.lp = LP(self.projFileManager.localLogfile)
 		self._loadData()
 		self.goodPixels = (self.tray_r[2] - self.tray_r[0])*(self.tray_r[3] - self.tray_r[1])
 
@@ -21,7 +24,7 @@ class DepthAnalyzer():
 		try:
 			self.tray_r
 		except AttributeError:
-			with open(self.fileManager.localTrayFile) as f:
+			with open(self.projFileManager.localTrayFile) as f:
 				line = next(f)
 				tray = line.rstrip().split(',')
 				self.tray_r = [int(x) for x in tray]
@@ -29,13 +32,13 @@ class DepthAnalyzer():
 		try:
 			self.smoothDepthData
 		except AttributeError:		
-			self.smoothDepthData = np.load(self.fileManager.localSmoothDepthFile)
+			self.smoothDepthData = np.load(self.projFileManager.localSmoothDepthFile)
 			self.smoothDepthData[:,:self.tray_r[0],:] = np.nan
 			self.smoothDepthData[:,self.tray_r[2]:,:] = np.nan
 			self.smoothDepthData[:,:,:self.tray_r[1]] = np.nan
 			self.smoothDepthData[:,:,self.tray_r[3]:] = np.nan
 
-	def returnBowerLocations(self, t0, t1, cropped = False ):
+	def returnBowerLocations(self, t0, t1, cropped=False, denoise=False):
 		# Returns 2D numpy array using thresholding and minimum size data to identify bowers
 		# Pits = -1, Castle = 1, No bower = 0
 		# threshold and min pixels will be automatically determined if not supplied
@@ -49,43 +52,37 @@ class DepthAnalyzer():
 		timeChange = t1 - t0
 
 		# Determine threshold and minimum size of bower to use based upon timeChange
-		if timeChange.total_seconds() < 7300: # 2 hours or less
-			totalThreshold = self.fileManager.hourlyThreshold
-			minPixels = self.fileManager.hourlyMinPixels
-			
-		elif timeChange.total_seconds() < 129600: # 2 hours to 1.5 days
-			totalThreshold = self.fileManager.dailyThreshold
-			minPixels = self.fileManager.dailyMinPixels
-			
-		else: # 1.5 days or more
-			totalThreshold = self.fileManager.totalThreshold
-			minPixels = self.fileManager.totalMinPixels
+		if timeChange.total_seconds() < 7300:  # 2 hours or less
+			totalThreshold = self.projFileManager.hourlyDepthThreshold
+			minPixels = self.projFileManager.hourlyMinPixels
+			denoiseRadius = self.projFileManager.hourlyDenoiseRadius
+		elif timeChange.total_seconds() < 129600:  # 2 hours to 1.5 days
+			totalThreshold = self.projFileManager.dailyDepthThreshold
+			minPixels = self.projFileManager.dailyMinPixels
+			denoiseRadius = self.projFileManager.dailyDenoiseRadius
 
+		else:  # 1.5 days or more
+			totalThreshold = self.projFileManager.totalDepthThreshold
+			minPixels = self.projFileManager.totalMinPixels
+			denoiseRadius = self.projFileManager.totalDenoiseRadius
 
-		tCastle = totalHeightChange.copy()
-		tCastle[tCastle < totalThreshold] = 0
-		tCastle[np.isnan(tCastle)] = 0
-		tCastle[tCastle!=0] = 1
-		tCastle = morphology.remove_small_objects(tCastle.astype(bool), minPixels)
+		tCastle = np.where(totalHeightChange >= totalThreshold, True, False)
+		if denoise:
+			tCastle = closing(opening(tCastle, disk(denoiseRadius)), disk(denoiseRadius))
+		tCastle = morphology.remove_small_objects(tCastle, minPixels).astype(int)
 
-		tPit = totalHeightChange.copy()
-		tPit[tPit > -1*totalThreshold] = 0
-		tPit[np.isnan(tPit)] = 0
-		tPit[tPit!=0] = 1
-		tPit = morphology.remove_small_objects(tPit.astype(bool), minPixels)
+		tPit = np.where(totalHeightChange <= -1 * totalThreshold, True, False)
+		if denoise:
+			tPit = closing(opening(tPit, disk(denoiseRadius)), disk(denoiseRadius))
+		tPit = morphology.remove_small_objects(tPit, minPixels).astype(int)
 
-		totalHeightChange[tCastle == False] = 0
-		totalHeightChange[tPit == False] = 0
-
-		totalHeightChange[tCastle == True] = 1
-		totalHeightChange[tPit == True] = -1
-
+		bowers = tCastle - tPit
 		if cropped:
-			totalHeightChange = totalHeightChange[self.tray_r[0]:self.tray_r[2],self.tray_r[1]:self.tray_r[3]]
+			bowers = bowers[self.tray_r[0]:self.tray_r[2], self.tray_r[1]:self.tray_r[3]]
 
-		return totalHeightChange
+		return bowers
 		
-	def returnHeight(self, t, cropped = False):
+	def returnHeight(self, t, cropped=False):
 
 		# Check times are good
 		self._checkTimes(t)
@@ -129,7 +126,7 @@ class DepthAnalyzer():
 		change = self.smoothDepthData[first_index] - self.smoothDepthData[last_index]
 		
 		if masked:
-			change[self.returnBowerLocations(t0, t1) == 0] = 0
+			change[self.returnBowerLocations(t0, t1, denoise=True) == 0] = 0
 
 		if cropped:
 			change = change[self.tray_r[0]:self.tray_r[2],self.tray_r[1]:self.tray_r[3]]
@@ -140,13 +137,13 @@ class DepthAnalyzer():
 		# Check times are good
 		self._checkTimes(t0,t1)
 
-		pixelLength = self.fileManager.pixelLength
-		bowerIndex_pixels = int(self.goodPixels*self.fileManager.bowerIndexFraction)
+		pixelLength = self.projFileManager.pixelLength
+		bowerIndex_pixels = int(self.goodPixels*self.projFileManager.bowerIndexFraction)
 
-		bowerLocations = self.returnBowerLocations(t0, t1)
+		bowerLocations = self.returnBowerLocations(t0, t1, denoise=True)
 		heightChange = self.returnHeightChange(t0, t1)
 		heightChangeAbs = heightChange.copy()
-		heightChangeAbs = np.abs(heightChange)
+		heightChangeAbs = np.abs(heightChangeAbs)
 
 		outData = SimpleNamespace()
 		# Get data
@@ -165,8 +162,6 @@ class DepthAnalyzer():
 		thresholdCastleVolume = np.nansum(heightChangeAbs[(bowerLocations == 1) & (heightChangeAbs > threshold)])
 		thresholdPitVolume = np.nansum(heightChangeAbs[(bowerLocations == -1) & (heightChangeAbs > threshold)])
 
-		numerator = np.nansum(heightChange[(bowerLocations == 1) & (heightChange > threshold)]) - -1*np.nansum(heightChange[(bowerLocations == -1) & (heightChange < -1*threshold)])
-		denom = np.nansum(heightChange[(bowerLocations == 1) & (heightChange > threshold)]) + -1*np.nansum(heightChange[(bowerLocations == -1) & (heightChange < -1*threshold)])
 		outData.bowerIndex = (thresholdCastleVolume - thresholdPitVolume)/(thresholdCastleVolume + thresholdPitVolume)
 		
 		return outData

@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import KernelDensity
+from sklearn.model_selection import GridSearchCV
 from skimage import morphology
 import datetime
 import sys
@@ -39,7 +40,7 @@ class ClusterAnalyzer:
             self.clusterData['X_depth'] = self.clusterData.apply(
                 lambda row: (self.transM[1][0] * row.Y + self.transM[1][1] * row.X + self.transM[1][2]) / (
                         self.transM[2][0] * row.Y + self.transM[2][1] * row.X + self.transM[2][2]), axis=1)
-        self.clusterData.round({'X_Depth': 0, 'Y_Depth': 0})
+        # self.clusterData.round({'X_Depth': 0, 'Y_Depth': 0})
 
         self.clusterData.to_csv(self.projFileManager.localAllLabeledClustersFile)
 
@@ -56,6 +57,8 @@ class ClusterAnalyzer:
         if cropped:
             df_slice = df_slice[(df_slice.X_depth > self.tray_r[1]) & (df_slice.X_depth < self.tray_r[3]) &
                                 (df_slice.Y_depth > self.tray_r[0]) & (df_slice.Y_depth < self.tray_r[2])]
+            df_slice.X_depth = df_slice.X_depth - self.tray_r[1]
+            df_slice.Y_depth = df_slice.Y_depth - self.tray_r[0]
         return df_slice
 
     def returnClusterCounts(self, t0, t1, bid='all', cropped=False):
@@ -70,31 +73,58 @@ class ClusterAnalyzer:
             cell = df_slice.modelAll_18_pred.count()
             return cell
 
-    def returnClusterKDE(self, t0, t1, bid, cropped=False, bandwidth=2.0, **kwargs):
+    def returnClusterKDE(self, t0, t1, bid, cropped=False, bandwidth=None):
         df_slice = self.sliceDataframe(t0=t0, t1=t1, bid=bid, cropped=cropped, columns=['X_depth', 'Y_depth'])
         n_events = len(df_slice.index)
         x_bins = int(self.tray_r[3] - self.tray_r[1])
         y_bins = int(self.tray_r[2] - self.tray_r[0])
-        xx, yy = np.mgrid[self.tray_r[1]:self.tray_r[3]:x_bins * 1j, self.tray_r[0]:self.tray_r[2]:y_bins * 1j]
-        xy_sample = np.vstack([yy.ravel(), xx.ravel()]).T
+        yy, xx = np.mgrid[0:y_bins, 0:x_bins]
+        xy_sample = np.vstack([xx.ravel(), yy.ravel()]).T
         xy_train = df_slice.to_numpy()
-        kde = KernelDensity(bandwidth=bandwidth, **kwargs).fit(xy_train)
+
+        if bandwidth is None:
+            params = {'bandwidth': np.logspace(-1, 1, 20), 'kernel': ['epanechnikov']}
+            grid = GridSearchCV(KernelDensity(), params)
+            grid.fit(xy_train)
+            print(grid.best_estimator_.bandwidth)
+            kde = grid.best_estimator_.fit(xy_train)
+        else:
+            bandwidth = bandwidth
+            kde = KernelDensity(bandwidth=bandwidth, kernel='epanechnikov').fit(xy_train)
+
         z = np.exp(kde.score_samples(xy_sample)).reshape(xx.shape)
         z = (z * n_events) / (z.sum() * (self.projFileManager.pixelLength ** 2))
         return z
 
-    def returnBowerLocations(self, z_scoop, z_spit, time_change):
-        daily_threshold = 0.4
-        min_pixels = 1000
-        morph_radius = 10
+    def returnBowerLocations(self, t0, t1, denoise=False, cropped=False, bandwidth=None):
 
-        scoop_binary = np.where(z_scoop > daily_threshold, 1, 0).astype(bool)
-        scoop_binary = closing(opening(scoop_binary, disk(morph_radius)), disk(morph_radius))
-        scoop_binary = morphology.remove_small_objects(scoop_binary, min_pixels).astype(int)
+        self._checkTimes(t0, t1)
+        timeChange = t1 - t0
 
-        spit_binary = np.where(z_spit > daily_threshold, 1, 0).astype(bool)
-        spit_binary = closing(opening(spit_binary, disk(morph_radius)), disk(morph_radius))
-        spit_binary = morphology.remove_small_objects(spit_binary, min_pixels).astype(int)
+        if timeChange.total_seconds() < 7300:  # 2 hours or less
+            totalThreshold = self.projFileManager.hourlyClusterThreshold
+            minPixels = self.projFileManager.hourlyMinPixels
+            denoiseRadius = self.projFileManager.hourlyDenoiseRadius
+        elif timeChange.total_seconds() < 129600:  # 2 hours to 1.5 days
+            totalThreshold = self.projFileManager.dailyClusterThreshold
+            minPixels = self.projFileManager.dailyMinPixels
+            denoiseRadius = self.projFileManager.dailyDenoiseRadius
+        else:  # 1.5 days or more
+            totalThreshold = self.projFileManager.totalClusterThreshold
+            minPixels = self.projFileManager.totalMinPixels
+            denoiseRadius = self.projFileManager.totalDenoiseRadius
+
+        z_scoop = self.returnClusterKDE(t0, t1, 'c', cropped=cropped, bandwidth=bandwidth)
+        scoop_binary = np.where(z_scoop >= totalThreshold, True, False)
+        if denoise:
+            scoop_binary = closing(opening(scoop_binary, disk(denoiseRadius)), disk(denoiseRadius))
+        scoop_binary = morphology.remove_small_objects(scoop_binary, minPixels).astype(int)
+
+        z_spit = self.returnClusterKDE(t0, t1, 'p', cropped=cropped, bandwidth=bandwidth)
+        spit_binary = np.where(z_spit >= totalThreshold, True, False)
+        if denoise:
+            spit_binary = closing(opening(spit_binary, disk(denoiseRadius)), disk(denoiseRadius))
+        spit_binary = morphology.remove_small_objects(spit_binary, minPixels).astype(int)
 
         bowers = spit_binary - scoop_binary
         return bowers
