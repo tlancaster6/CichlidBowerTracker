@@ -2,7 +2,6 @@ import argparse, os, pdb, sys, subprocess
 from Modules.DataPreparers.AnalysisPreparer import AnalysisPreparer as AP
 from Modules.DataPreparers.ProjectPreparer import ProjectPreparer as PP
 
-
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers(help='Available Commands', dest='command')
 
