@@ -82,21 +82,12 @@ class ClusterAnalyzer:
         xy_sample = np.vstack([xx.ravel(), yy.ravel()]).T
         xy_train = df_slice.to_numpy()
 
-        if bandwidth is None:
-            params = {'bandwidth': np.logspace(-1, 1, 20), 'kernel': ['epanechnikov']}
-            grid = GridSearchCV(KernelDensity(), params)
-            grid.fit(xy_train)
-            print(grid.best_estimator_.bandwidth)
-            kde = grid.best_estimator_.fit(xy_train)
-        else:
-            bandwidth = bandwidth
-            kde = KernelDensity(bandwidth=bandwidth, kernel='epanechnikov').fit(xy_train)
-
+        kde = KernelDensity(bandwidth=bandwidth, kernel='epanechnikov').fit(xy_train)
         z = np.exp(kde.score_samples(xy_sample)).reshape(xx.shape)
         z = (z * n_events) / (z.sum() * (self.projFileManager.pixelLength ** 2))
         return z
 
-    def returnBowerLocations(self, t0, t1, denoise=False, cropped=False, bandwidth=None):
+    def returnBowerLocations(self, t0, t1, denoise=False, cropped=False, bandwidth=10.0):
 
         self._checkTimes(t0, t1)
         timeChange = t1 - t0
