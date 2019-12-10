@@ -52,7 +52,7 @@ class MLClusterPreparer:
 			for clip in clips:
 				label = self.videoClasses[0] # Need to temporarily assign the clip to a label - just pick the first
 					
-				outDirectory = self.projFileManager.localProcessedClipsDir + label + '/' + clip.replace('.mp4','') + '/'
+				outDirectory = self.projFileManager.localMasterDir + label + '/' + clip.replace('.mp4','') + '/'
 
 				shutil.rmtree(outDirectory) if os.path.exists(outDirectory) else None
 				os.makedirs(outDirectory) 
@@ -117,7 +117,7 @@ class MLClusterPreparer:
 		command['--annotation_file'] = self.projFileManager.localMasterDir + 'AnnotationFile.csv'
 		command['--annotation_path'] = 'cichlids.json'
 		command['--batch_size'] = str(int(int(command['--batch_size'])*2))
-		command['--video_path'] = 'AllClips'
+		command['--video_path'] = ''
 
 		resultsDirectory = 'prediction/'
 		shutil.rmtree(self.projFileManager.localMasterDir + resultsDirectory) if os.path.exists(self.projFileManager.localMasterDir + resultsDirectory) else None
@@ -139,7 +139,7 @@ class MLClusterPreparer:
 		softmax = dt.apply(scipy.special.softmax, axis = 1)
 		prediction = pd.concat([softmax.idxmax(axis=1).rename(self.mlFileManager.vModelID + '_pred'), softmax.max(axis=1).rename(self.mlFileManager.vModelID + '_conf')], axis=1)
 		prediction['ClipName'] = prediction.apply(lambda row: row.name.split('/')[-1], axis = 1)
-		allClusterData = pd.read_csv(self.projFileManager.localAllLabeledClustersFile, sep = ',')
+		allClusterData = pd.read_csv(self.projFileManager.localAllLabeledClustersFile, sep = ',', index_col = 'LID')
 		allClusterData = pd.merge(allClusterData, prediction, how = 'left', left_on = 'ClipName', right_on = 'ClipName')
 		allClusterData.to_csv(self.projFileManager.localAllLabeledClustersFile, sep = ',')
 
