@@ -14,7 +14,7 @@ prepParser.add_argument('-p', '--ProjectIDs', nargs = '+', required = True, type
 prepParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
 
 projectParser = subparsers.add_parser('ProjectAnalysis', help='This command performs a single type of analysis of the project. It is meant to be chained together to perform the entire analysis')
-projectParser.add_argument('AnalysisType', type = str, choices=['Download','Depth','Cluster','MLClassification', 'MLFishDetection','Figures','Backup'], help = 'What type of analysis to perform')
+projectParser.add_argument('AnalysisType', type = str, choices=['CreatePBS', 'Download','Depth','Cluster','MLClassification', 'MLFishDetection','Figures','Backup'], help = 'What type of analysis to perform')
 projectParser.add_argument('ProjectID', type = str, help = 'Which projectID you want to identify')
 projectParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
 projectParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
@@ -62,6 +62,9 @@ elif args.command == 'ProjectAnalysis':
 
 	if args.AnalysisType == 'Download' or args.DownloadOnly:
 		pp_obj.downloadData(args.AnalysisType)
+
+	if args.AnalysisType == 'CreatePBS':
+		pp_obj.createPBS()
 
 	elif args.AnalysisType == 'Depth':
 		pp_obj.runDepthAnalysis()

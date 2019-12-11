@@ -6,6 +6,7 @@ from Modules.DataPreparers.DepthPreparer import DepthPreparer as DP
 from Modules.DataPreparers.ClusterPreparer import ClusterPreparer as CP
 from Modules.DataPreparers.MLClusterPreparer import MLClusterPreparer as MLP
 from Modules.DataPreparers.FigurePreparer import FigurePreparer as FP
+from Modules.DataPreparers.PbsPreparer import PbsPreparer as PBS
 
 class ProjectPreparer():
 	# This class takes in a projectID and runs all the appropriate analysis
@@ -20,11 +21,15 @@ class ProjectPreparer():
 		self.mlFileManager = self.fileManager.retMLFileManager() 
 
 	def downloadData(self, dtype):
-		assert self.projFileManager.node_type == 'datamover node', 'Error: all data downloads should be performed on a datamover node'
 		self.fileManager.createDirs()
 		self.projFileManager.downloadData(dtype)
 		if dtype in ['Download', 'MLClassification']:
 			self.mlFileManager.downloadData()
+
+	def createPBS(self):
+		self.projFileManager.downloadData('CreatePBS')
+		pbs_obj = PBS(self.projFileManager)
+		pbs_obj.createPBS()
 
 	def runPrepAnalysis(self):
 		self.fileManager.createDirs()
