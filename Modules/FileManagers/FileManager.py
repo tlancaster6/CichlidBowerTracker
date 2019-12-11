@@ -25,8 +25,8 @@ class FileManager():
 
 		self._identifyPiDirectory() # Determine if we are on a raspberry pi and if so identify directory
 		
-	def retProjFileManager(self, projectID):
-		return ProjFM(self.localMasterDir, self.cloudMasterDir, projectID)
+	def retProjFileManager(self, projectID, tempDir):
+		return ProjFM(self.localMasterDir, self.cloudMasterDir, projectID, tempDir)
 
 	def retMLFileManager(self):
 		return MLFM(self.localMasterDir, self.cloudMasterDir)

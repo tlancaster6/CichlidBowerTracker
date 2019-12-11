@@ -2,8 +2,9 @@ import os, subprocess, pdb
 
 
 class ProjFileManager():
-	def __init__(self, localMasterDir, cloudMasterDir, projectID):
+	def __init__(self, localMasterDir, cloudMasterDir, projectID, tempDir):
 		self.projectID = projectID
+		self.tempDir = tempDir
 
 		self.localMasterDir = localMasterDir + projectID + '/'
 		self.cloudMasterDir = cloudMasterDir + projectID + '/'
@@ -126,8 +127,11 @@ class ProjFileManager():
 		self.troubleshootingDir = 'Troubleshooting/'
 		self.cloudTroubleshootingDir = self.cloudMasterDir + 'Troubleshooting/'
 		self.localTroubleshootingDir = self.localMasterDir + 'Troubleshooting/'
-		self.tempDir = 'Temp/'
-		self.localTempDir = self.localMasterDir + 'Temp/'
+		if self.tempDir is None:
+			self.tempDir = 'Temp/'
+			self.localTempDir = self.localMasterDir + 'Temp/'
+		else:
+			self.localTempDir = self.tempDir + '/'
 
 		# LocalFiles
 		self.localFirstFrame = self.localMasterDir + self.prepDir + 'FirstDepth.npy'

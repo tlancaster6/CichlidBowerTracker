@@ -10,12 +10,13 @@ from Modules.DataPreparers.FigurePreparer import FigurePreparer as FP
 class ProjectPreparer():
 	# This class takes in a projectID and runs all the appropriate analysis
 
-	def __init__(self, projectID, workers = None):
+	def __init__(self, projectID, workers=None, tempDir=None):
 
 		self.projectID = projectID
 		self.workers = workers
+		self.tempDir = tempDir
 		self.fileManager = FM()
-		self.projFileManager = self.fileManager.retProjFileManager(projectID) 
+		self.projFileManager = self.fileManager.retProjFileManager(projectID, tempDir)
 		self.mlFileManager = self.fileManager.retMLFileManager() 
 
 	def downloadData(self, dtype):

@@ -20,6 +20,7 @@ projectParser.add_argument('-w', '--Workers', type = int, help = 'Use if you wan
 projectParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
 projectParser.add_argument('-d', '--DownloadOnly', action = 'store_true', help = 'Use if you only want to download the data for a specific analysis')
 projectParser.add_argument('-v', '--VideoIndex', type = int, help = 'Restrict cluster analysis to single video')
+projectParser.add_argument('-t', '--TempDir', type=str, help='Manually enter the temp directory location', default=None)
 
 totalProjectsParser = subparsers.add_parser('TotalProjectAnalysis', help='This command runs the entire pipeline on list of projectIDs')
 totalProjectsParser.add_argument('Computer', type = str, choices=['NURF','SRG','PACE'], help = 'What computer are you running this analysis from?')
@@ -57,7 +58,7 @@ elif args.command == 'ProjectAnalysis':
 
 	args.ProjectIDs = args.ProjectID # format that parseProjects expects
 
-	pp_obj = PP(args.ProjectID, args.Workers)
+	pp_obj = PP(args.ProjectID, args.Workers, args.TempDir)
 
 	if args.AnalysisType == 'Download' or args.DownloadOnly:
 		pp_obj.downloadData(args.AnalysisType)

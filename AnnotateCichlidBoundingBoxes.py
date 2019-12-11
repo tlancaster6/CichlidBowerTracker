@@ -312,8 +312,10 @@ class ObjectLabeler():
 		# Reset annotations
 		self.annotation = Annotation(self)
 
+os.chdir('/home/tlancaster6/Temp/CichlidAnalyzer/TI2_5_newtray')
 if not os.path.exists('MLFrames'):
-	subprocess.run(['rclone', 'copy', 'cichlidVideo:McGrath/Apps/CichlidPiData/TI2_5_newtray/MLFrames.tar', '.'])
+	# subprocess.run(['rclone', 'copy', 'cichlidVideo:McGrath/Apps/CichlidPiData/TI2_5_newtray/MLFrames.tar', '.'])
+	subprocess.run(['rclone', 'copy', 'cichlidVideo:BioSci-McGrath/Apps/CichlidPiData/TI2_5_newtray/MLFrames.tar', '.'])
 	subprocess.run(['tar', '-xvf', 'MLFrames.tar'])
 
 obj = ObjectLabeler('MLFrames/', 'AnnotationFile.csv')
