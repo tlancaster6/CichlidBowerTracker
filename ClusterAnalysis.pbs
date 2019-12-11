@@ -4,7 +4,7 @@
 #PBS -l pmem=2gb
 #PBS -q iw-shared-6
 #PBS -j oe
-#PBS -o ClusterAnalysis_test4.out
+#PBS -o PaceLogs/ClusterAnalysis_test4.out
 #PBS -m abe
 #PBS -t 0-14
 #PBS -M tlancaster6@gatech.edu
