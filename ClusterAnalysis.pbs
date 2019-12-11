@@ -6,7 +6,7 @@
 #PBS -j oe
 #PBS -o ClusterAnalysis_test5.out
 #PBS -m abe
-#PBS -t 1-15
+#PBS -t 0-14
 #PBS -M tlancaster6@gatech.edu
 
 
@@ -14,4 +14,4 @@ cd ~/data/CichlidBowerTracker
 echo "Started on `/bin/hostname`"
 module load anaconda3
 source activate CichlidBowerTracker
-python CichlidBowerTracker.py ProjectAnalysis Cluster TI2_5_newtray -w 8 -v 1 -t ${TMPDIR}
+python CichlidBowerTracker.py ProjectAnalysis Cluster TI2_5_newtray -w 8 -v {PBS_ARRAYID} -t ${TMPDIR}
