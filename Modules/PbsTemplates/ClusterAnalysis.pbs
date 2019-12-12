@@ -4,7 +4,7 @@
 #PBS -l pmem=2gb
 #PBS -q iw-shared-6
 #PBS -j oe
-#PBS -o ClusterAnalysis.out
+#PBS -o ~/scratch/${PROJECT_ID}/Troubleshooting/ClusterAnalysis.out
 #PBS -m abe
 #PBS -t 0-${ARRAY_MAX}
 #PBS -M tlancaster6@gatech.edu
