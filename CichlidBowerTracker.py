@@ -20,7 +20,12 @@ projectParser.add_argument('-w', '--Workers', type = int, help = 'Use if you wan
 projectParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
 projectParser.add_argument('-d', '--DownloadOnly', action = 'store_true', help = 'Use if you only want to download the data for a specific analysis')
 projectParser.add_argument('-v', '--VideoIndex', type = int, help = 'Restrict cluster analysis to single video')
-projectParser.add_argument('-t', '--TempDir', type=str, help='Manually enter the temp directory location', default=None)
+projectParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired', default=None)
+
+paceParser = subparsers.add_parser('PacePrep', help='Run this command to create the necessary pbs scripts for analysis on PACE')
+paceParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
+paceParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
+projectParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired', default=None)
 
 totalProjectsParser = subparsers.add_parser('TotalProjectAnalysis', help='This command runs the entire pipeline on list of projectIDs')
 totalProjectsParser.add_argument('Computer', type = str, choices=['NURF','SRG','PACE'], help = 'What computer are you running this analysis from?')
@@ -50,6 +55,10 @@ elif args.command == 'ManualPrep':
 	#pp_obj.backupAnalysis()
 	ap_obj.updateAnalysisFile(newProjects = False, projectSummary = False)
 
+elif args.command == 'PacePrep':
+	pp_obj = PP(args.ProjectID, args.Workers, args.TempDir)
+	pp_obj.createPBS()
+
 elif args.command == 'ProjectAnalysis':
 
 	if args.DownloadOnly and args.AnalysisType in ['Download','Backup']:
@@ -62,9 +71,6 @@ elif args.command == 'ProjectAnalysis':
 
 	if args.AnalysisType == 'Download' or args.DownloadOnly:
 		pp_obj.downloadData(args.AnalysisType)
-
-	if args.AnalysisType == 'CreatePBS':
-		pp_obj.createPBS()
 
 	elif args.AnalysisType == 'Depth':
 		pp_obj.runDepthAnalysis()
