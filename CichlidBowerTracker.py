@@ -31,6 +31,8 @@ totalProjectsParser = subparsers.add_parser('TotalProjectAnalysis', help='This c
 totalProjectsParser.add_argument('Computer', type = str, choices=['NURF','SRG','PACE'], help = 'What computer are you running this analysis from?')
 totalProjectsParser.add_argument('-p', '--ProjectIDs', nargs = '+', required = True, type = str, help = 'Manually identify the projects you want to analyze. If All is specified, all non-prepped projects will be analyzed')
 totalProjectsParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
+totalProjectsParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
+totalProjectsParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired', default=None)
 
 args = parser.parse_args()
 
