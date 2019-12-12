@@ -26,7 +26,7 @@ paceParser = subparsers.add_parser('PacePrep', help='Run this command to create 
 paceParser.add_argument('ProjectID', type = str, help = 'Which projectID you want to identify')
 paceParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
 paceParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
-projectParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired', default=None)
+projectParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired. Pass LSS to use local scratch storage on PACE', default=None)
 
 totalProjectsParser = subparsers.add_parser('TotalProjectAnalysis', help='This command runs the entire pipeline on list of projectIDs')
 totalProjectsParser.add_argument('Computer', type = str, choices=['NURF','SRG','PACE'], help = 'What computer are you running this analysis from?')
