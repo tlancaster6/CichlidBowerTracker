@@ -14,7 +14,7 @@ prepParser.add_argument('-p', '--ProjectIDs', nargs = '+', required = True, type
 prepParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
 
 projectParser = subparsers.add_parser('ProjectAnalysis', help='This command performs a single type of analysis of the project. It is meant to be chained together to perform the entire analysis')
-projectParser.add_argument('AnalysisType', type = str, choices=['CreatePBS', 'Download','Depth','Cluster','MLClassification', 'MLFishDetection','Figures','Backup'], help = 'What type of analysis to perform')
+projectParser.add_argument('AnalysisType', type = str, choices=['Download','Depth','Cluster','MLClassification', 'MLFishDetection','Figures','Backup'], help = 'What type of analysis to perform')
 projectParser.add_argument('ProjectID', type = str, help = 'Which projectID you want to identify')
 projectParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
 projectParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
@@ -23,6 +23,7 @@ projectParser.add_argument('-v', '--VideoIndex', type = int, help = 'Restrict cl
 projectParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired', default=None)
 
 paceParser = subparsers.add_parser('PacePrep', help='Run this command to create the necessary pbs scripts for analysis on PACE')
+paceParser.add_argument('ProjectID', type = str, help = 'Which projectID you want to identify')
 paceParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
 paceParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
 projectParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired', default=None)
@@ -32,7 +33,7 @@ totalProjectsParser.add_argument('Computer', type = str, choices=['NURF','SRG','
 totalProjectsParser.add_argument('-p', '--ProjectIDs', nargs = '+', required = True, type = str, help = 'Manually identify the projects you want to analyze. If All is specified, all non-prepped projects will be analyzed')
 totalProjectsParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
 totalProjectsParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
-totalProjectsParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired', default=None)
+totalProjectsParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired. Pass LSS to use local scratch storage on PACE', default=None)
 
 args = parser.parse_args()
 

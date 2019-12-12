@@ -137,6 +137,8 @@ class ProjFileManager():
 		if self.tempDir is None:
 			self.tempDir = 'Temp/'
 			self.localTempDir = self.localMasterDir + 'Temp/'
+		elif self.tempDir == 'LSS':
+			self.localTempDir = None
 		else:
 			self.localTempDir = self.tempDir + '/'
 
