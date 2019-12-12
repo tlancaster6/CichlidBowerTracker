@@ -7,8 +7,14 @@ class PbsPreparer:
     def __init__(self, projFileManager):
         self.projFileManager = projFileManager
 
-    def createPBS(self):
+    def validateInputData(self):
         assert os.path.exists(self.projFileManager.localLogfile)
+        assert os.path.exists(self.projFileManager.localPbsDir)
+
+        self.uploads = [(self.projFileManager.localPbsDir, self.projFileManager.cloudPbsDir, '0')]
+
+    def createPBS(self):
+
         array_max = str(LP(self.projFileManager.localLogfile).numDays - 1)
         d = {'ARRAY_MAX': array_max,
              'PROJECT_ID': self.projFileManager.projectID,

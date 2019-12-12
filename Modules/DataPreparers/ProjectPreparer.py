@@ -26,10 +26,14 @@ class ProjectPreparer():
 		if dtype in ['Download', 'MLClassification']:
 			self.mlFileManager.downloadData()
 
-	def createPBS(self):
-		self.projFileManager.downloadData('CreatePBS')
+	def runPacePrep(self):
+		self.fileManager.createDirs()
+		self.projFileManager.downloadData('PacePrep')
 		pbs_obj = PBS(self.projFileManager)
+		pbs_obj.validateInputData()
 		pbs_obj.createPBS()
+		self.createUploadFile(pbs_obj.uploads)
+		self.createAnalysisUpdate('PacePrep')
 
 	def runPrepAnalysis(self):
 		self.fileManager.createDirs()

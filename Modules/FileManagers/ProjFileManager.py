@@ -34,7 +34,7 @@ class ProjFileManager():
 			self._createDirectory(self.localAnalysisDir)
 			self._createDirectory(self.localFiguresDir)
 
-		elif dtype == 'CreatePBS':
+		elif dtype == 'PacePrep':
 			self._createDirectory(self.localMasterDir)
 			self._createDirectory(self.localPbsDir)
 			self._downloadFile(self.logfile)
@@ -130,6 +130,7 @@ class ProjFileManager():
 		self.localManualLabelFramesDir = self.localMasterDir + 'MLFrames/'
 
 		self.pbsDir = 'PBS/'
+		self.cloudPbsDir = self.cloudMasterDir + 'PBS/'
 		self.localPbsDir = self.localMasterDir + 'PBS/'
 		self.troubleshootingDir = 'Troubleshooting/'
 		self.cloudTroubleshootingDir = self.cloudMasterDir + 'Troubleshooting/'
@@ -138,10 +139,7 @@ class ProjFileManager():
 			self.tempDir = 'Temp/'
 			self.localTempDir = self.localMasterDir + 'Temp/'
 		elif self.tempDir == 'LSS':
-			self.localTempDir = None
-		else:
-			self.localTempDir = self.tempDir + '/'
-
+			self.localTempDir = '${TMPDIR}'
 		# LocalFiles
 		self.localFirstFrame = self.localMasterDir + self.prepDir + 'FirstDepth.npy'
 		self.localLastFrame = self.localMasterDir + self.prepDir + 'LastDepth.npy'

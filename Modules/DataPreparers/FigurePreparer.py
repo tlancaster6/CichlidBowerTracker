@@ -31,7 +31,8 @@ class FigurePreparer:
 		assert os.path.exists(self.projFileManager.localAnalysisDir)
 		assert os.path.exists(self.projFileManager.localAllLabeledClustersFile)
 		assert os.path.exists(self.projFileManager.localTransMFile)
-		self.uploads = [(self.projFileManager.localAnalysisDir, self.projFileManager.cloudAnalysisDir, 0)]
+		self.uploads = [(self.projFileManager.localAnalysisDir, self.projFileManager.cloudAnalysisDir, 0),
+						(self.projFileManager.localFiguresDir, self.projFileManager.cloudFiguresDir, 0)]
 
 
 	def _createDepthFigures(self, hourlyDelta=2):

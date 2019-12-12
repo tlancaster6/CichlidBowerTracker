@@ -60,7 +60,7 @@ elif args.command == 'ManualPrep':
 
 elif args.command == 'PacePrep':
 	pp_obj = PP(args.ProjectID, args.Workers, args.TempDir)
-	pp_obj.createPBS()
+	pp_obj.runPacePrep()
 
 elif args.command == 'ProjectAnalysis':
 

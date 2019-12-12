@@ -5,7 +5,6 @@
 #PBS -q iw-shared-6
 #PBS -j oe
 #PBS -o ~/scratch/${PROJECT_ID}/Troubleshooting/ClusterAnalysis.out
-#PBS -m abe
 #PBS -t 0-${ARRAY_MAX}
 
 cd ~/data/CichlidBowerTracker
