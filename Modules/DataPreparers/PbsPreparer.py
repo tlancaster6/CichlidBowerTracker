@@ -7,6 +7,7 @@ class PbsPreparer:
     def __init__(self, projFileManager, workers):
         self.projFileManager = projFileManager
         self.workers = workers
+        self.__version__ = '1.0.0'
 
     def validateInputData(self):
         assert os.path.exists(self.projFileManager.localLogfile)
@@ -28,7 +29,7 @@ class PbsPreparer:
         outfile.write(mod)
         outfile.close()
 
-        # Generate Pos-Cluster-Analysis PBS
+        # Generate Post-Cluster-Analysis PBS
         d = {'PROJECT_ID': self.projFileManager.projectID}
         infile = open(os.path.join(os.getcwd(), 'Modules', 'PbsTemplates', 'PostClusterAnalysis.pbs'), 'r')
         mod = Template(infile.read()).safe_substitute(d)

@@ -33,7 +33,7 @@ class ProjectPreparer():
 		pbs_obj.validateInputData()
 		pbs_obj.createPBS()
 		self.createUploadFile(pbs_obj.uploads)
-		self.createAnalysisUpdate('PacePrep')
+		self.createAnalysisUpdate('PacePrep', pbs_obj)
 
 	def runPrepAnalysis(self):
 		self.fileManager.createDirs()
