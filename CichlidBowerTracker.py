@@ -26,7 +26,8 @@ paceParser = subparsers.add_parser('PacePrep', help='Run this command to create 
 paceParser.add_argument('ProjectID', type = str, help = 'Which projectID you want to identify')
 paceParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
 paceParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
-projectParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired. Pass LSS to use local scratch storage on PACE', default=None)
+paceParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired. Pass LSS to use local scratch storage on PACE', default=None)
+paceParser.add_argument('-m', '--Email', type=str, help='Optional. Enter an Email to notify when scripts start, stop, or fail')
 
 totalProjectsParser = subparsers.add_parser('TotalProjectAnalysis', help='This command runs the entire pipeline on list of projectIDs')
 totalProjectsParser.add_argument('Computer', type = str, choices=['NURF','SRG','PACE'], help = 'What computer are you running this analysis from?')
@@ -60,7 +61,7 @@ elif args.command == 'ManualPrep':
 
 elif args.command == 'PacePrep':
 	pp_obj = PP(args.ProjectID, args.Workers, args.TempDir)
-	pp_obj.runPacePrep()
+	pp_obj.runPacePrep(args.Email)
 
 elif args.command == 'ProjectAnalysis':
 

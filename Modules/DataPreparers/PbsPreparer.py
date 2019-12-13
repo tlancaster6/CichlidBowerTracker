@@ -4,9 +4,10 @@ from Modules.DataObjects.LogParser import LogParser as LP
 
 class PbsPreparer:
 
-    def __init__(self, projFileManager, workers):
+    def __init__(self, projFileManager, workers, email):
         self.projFileManager = projFileManager
         self.workers = workers
+        self.email = email
         self.__version__ = '1.0.0'
 
     def validateInputData(self):
@@ -21,7 +22,8 @@ class PbsPreparer:
         d = {'ARRAY_MAX': array_max,
              'PROJECT_ID': self.projFileManager.projectID,
              'TMPDIR': self.projFileManager.localTempDir,
-             'WORKERS': self.workers}
+             'WORKERS': self.workers,
+             'EMAIL': self.email}
         infile = open(os.path.join(os.getcwd(), 'Modules', 'PbsTemplates', 'ClusterAnalysis.pbs'), 'r')
         mod = Template(infile.read()).safe_substitute(d)
         infile.close()

@@ -6,6 +6,8 @@
 #PBS -j oe
 #PBS -o ~/scratch/${PROJECT_ID}/Troubleshooting/ClusterAnalysis.out
 #PBS -t 0-${ARRAY_MAX}
+#PBS -M ${EMAIL}
+#PBS -m abe
 
 cd ~/data/CichlidBowerTracker
 echo "Started on `/bin/hostname`"
