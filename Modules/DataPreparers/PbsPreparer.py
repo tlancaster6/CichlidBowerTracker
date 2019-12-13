@@ -55,5 +55,15 @@ class PbsPreparer:
         outfile.write(mod)
         outfile.close()
 
+        # Generate ML Cluster Classifer PBS
+        d = {'PROJECT_ID': self.projFileManager.projectID, 'EMAIL': self.email}
+        infile = open(os.path.join(os.getcwd(), 'Modules', 'PbsTemplates', 'MLClusterClassifier.pbs'), 'r')
+        mod = Template(infile.read()).safe_substitute(d)
+        infile.close()
+        if self.email is None:
+            mod = mod.replace('#PBS -M None\n#PBS -m abe\n', '')
+        outfile = open(self.projFileManager.localPbsDir + 'MLClusterClassifier.pbs', 'w')
+        outfile.write(mod)
+        outfile.close()
 
 
