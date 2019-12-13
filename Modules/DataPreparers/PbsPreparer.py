@@ -27,6 +27,8 @@ class PbsPreparer:
         infile = open(os.path.join(os.getcwd(), 'Modules', 'PbsTemplates', 'ClusterAnalysis.pbs'), 'r')
         mod = Template(infile.read()).safe_substitute(d)
         infile.close()
+        if self.email is None:
+            mod = mod.replace('#PBS -M None\n#PBS -m abe\n', '')
         outfile = open(self.projFileManager.localPbsDir + 'ClusterAnalysis.pbs', 'w')
         outfile.write(mod)
         outfile.close()
@@ -36,6 +38,8 @@ class PbsPreparer:
         infile = open(os.path.join(os.getcwd(), 'Modules', 'PbsTemplates', 'PostClusterAnalysis.pbs'), 'r')
         mod = Template(infile.read()).safe_substitute(d)
         infile.close()
+        if self.email is None:
+            mod = mod.replace('#PBS -M None\n#PBS -m abe\n', '')
         outfile = open(self.projFileManager.localPbsDir + 'PostClusterAnalysis.pbs', 'w')
         outfile.write(mod)
         outfile.close()

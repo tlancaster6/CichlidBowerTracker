@@ -26,7 +26,7 @@ class ProjectPreparer():
 		if dtype in ['Download', 'MLClassification']:
 			self.mlFileManager.downloadData()
 
-	def runPacePrep(self, email):
+	def runPacePrep(self, email=None):
 		self.fileManager.createDirs()
 		self.projFileManager.downloadData('PacePrep')
 		pbs_obj = PBS(self.projFileManager, self.workers, email)
