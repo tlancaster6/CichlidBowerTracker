@@ -1,15 +1,14 @@
 #PBS -N ${PROJECT_ID}_ClusterAnalysis
-#PBS -l nodes=1:ppn=28:intel
+#PBS -l nodes=1:ppn=${WORKERS}:intel
 #PBS -l walltime=12:00:00
 #PBS -l pmem=2gb
 #PBS -q iw-shared-6
 #PBS -j oe
 #PBS -o ~/scratch/${PROJECT_ID}/Troubleshooting/ClusterAnalysis.out
-#PBS -m abe
 #PBS -t 0-${ARRAY_MAX}
 
 cd ~/data/CichlidBowerTracker
 echo "Started on `/bin/hostname`"
 module load anaconda3
 source activate CichlidBowerTracker
-python CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w 28 -v ${PBS_ARRAYID} -t ${TMPDIR}
+python CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w ${WORKERS} -v ${PBS_ARRAYID} -t ${TMPDIR}

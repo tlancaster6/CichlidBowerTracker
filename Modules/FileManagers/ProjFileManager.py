@@ -34,7 +34,7 @@ class ProjFileManager():
 			self._createDirectory(self.localAnalysisDir)
 			self._createDirectory(self.localFiguresDir)
 
-		elif dtype == 'CreatePBS':
+		elif dtype == 'PacePrep':
 			self._createDirectory(self.localMasterDir)
 			self._createDirectory(self.localPbsDir)
 			self._downloadFile(self.logfile)
