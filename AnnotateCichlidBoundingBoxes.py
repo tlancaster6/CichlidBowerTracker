@@ -1,12 +1,11 @@
+from Modules.FileManagers.FileManager import FileManager as FM
+
+
 import matplotlib.pyplot as plt
 # These disable some of the default key strokes that we will use
 plt.rcParams['keymap.all_axes'] = '' #a
 plt.rcParams['keymap.back'] = ['left', 'backspace', 'MouseButton.BACK'] #c
-plt.rcParams['keymap.fullscreen'] = '' #f
 plt.rcParams['keymap.pan'] = '' #p
-plt.rcParams['keymap.save'] = '' #s
-plt.rcParams['keymap.zoom'] = '' #o
-plt.rcParams['keymap.xscale'] = ['L'] #k
 
 # Import buttons that we will use to make this interactive
 from matplotlib.widgets import Button
@@ -16,7 +15,7 @@ from matplotlib.widgets import RectangleSelector
 # Import some patches that we will use to display the annotations
 from matplotlib.patches import Rectangle
 
-import pdb, datetime, os, subprocess
+import pdb, datetime, os, subprocess, argparse
 import pandas as pd
 
 class Annotation():
@@ -61,26 +60,25 @@ class Annotation():
 		self.rectangle = None
 
 class ObjectLabeler():
-	def __init__(self, frameDirectory, annotationFile):
+	def __init__(self, frameDirectory, annotationFile, number):
 
 		self.frameDirectory = frameDirectory
 		self.annotationFile = annotationFile
+		self.number = number
+
 		self.frames = [x for x in os.listdir(self.frameDirectory) if '.jpg' in x and '._' not in x] # remove annoying mac OSX files
 		assert len(self.frames) > 0
 
-		# Initialize flag to keep track of whether the user is drawing and object box
-		self.drawing = False
-
-		# Keep track of the frame we are on
+		# Keep track of the frame we are on and how many we have annotated
 		self.frame_index = 0
+		self.annotated_frames = []
 
 		# Intialize lists to hold annotated objects
 		self.coords = ()
-		self.poses = () 
 
 		# Create dataframe to hold annotations
 		if os.path.exists(self.annotationFile):
-			self.dt = pd.read_csv(self.annotationFile)
+			self.dt = pd.read_csv(self.annotationFile, index_col = 0)
 		else:
 			self.dt = pd.DataFrame(columns=['Framefile', 'Nfish', 'Sex', 'Box', 'User', 'DateTime'])
 		self.f_dt = pd.DataFrame(columns=['Framefile','Sex', 'Box','User', 'DateTime'])
@@ -122,7 +120,7 @@ class ObjectLabeler():
 
 		# Create radio buttons
 		self.ax_radio = fig.add_axes([0.85,0.85,0.125,0.1])
-		self.radio_names = [r"$\bf{M}$" + 'ale',r"$\bf{F}$" + 'emale',r"$\bf{O}$" +'ccluded',r"$\bf{U}$" +'nknown']
+		self.radio_names = [r"$\bf{M}$" + 'ale',r"$\bf{F}$" + 'emale',r"$\bf{U}$" +'nknown']
 		self.bt_radio =  RadioButtons(self.ax_radio, self.radio_names, active=0, activecolor='blue' )
 
 		# Create click buttons for adding annotations
@@ -132,17 +130,19 @@ class ObjectLabeler():
 		self.bt_boxClear = Button(self.ax_boxClear, r"$\bf{C}$" + 'lear Box')
 
 		# Create click buttons for saving frame annotations or starting over
-		self.ax_frameAdd = fig.add_axes([0.85,0.225,0.125,0.04])
-		self.ax_frameClear = fig.add_axes([0.85,0.175,0.125,0.04])
-		self.bt_frameAdd = Button(self.ax_frameAdd, r"$\bf{N}$" + 'ext Frame')
+		self.ax_frameClear = fig.add_axes([0.85,0.275,0.125,0.04])
 		self.bt_frameClear = Button(self.ax_frameClear, r"$\bf{R}$" + 'eset Frame')
+		self.ax_frameAdd = fig.add_axes([0.85,0.225,0.125,0.04])
+		self.bt_frameAdd = Button(self.ax_frameAdd, r"$\bf{N}$" + 'ext Frame')
+		self.ax_framePrevious = fig.add_axes([0.85,0.175,0.125,0.04])
+		self.bt_framePrevious = Button(self.ax_framePrevious, r"$\bf{P}$" + 'revious Frame')
 
 		# Add text boxes to display info on annotations
 		self.ax_cur_text = fig.add_axes([0.85,0.575,0.125,0.14])
 		self.ax_cur_text.set_axis_off()
 		self.cur_text =self.ax_cur_text.text(0, 1, '', fontsize=8, verticalalignment='top')
 
-		self.ax_all_text = fig.add_axes([0.85,0.275,0.125,0.19])
+		self.ax_all_text = fig.add_axes([0.85,0.375,0.125,0.19])
 		self.ax_all_text.set_axis_off()
 		self.all_text =self.ax_all_text.text(0, 1, '', fontsize=9, verticalalignment='top')
 
@@ -162,12 +162,14 @@ class ObjectLabeler():
 		self.fig.canvas.mpl_disconnect(self.bt_boxClear.cids[2])
 		self.fig.canvas.mpl_disconnect(self.bt_frameAdd.cids[2])
 		self.fig.canvas.mpl_disconnect(self.bt_frameClear.cids[2])
+		self.fig.canvas.mpl_disconnect(self.bt_framePrevious.cids[2])
 
 		# Connect buttons to specific functions		
 		self.bt_boxAdd.on_clicked(self._addBoundingBox)
 		self.bt_boxClear.on_clicked(self._clearBoundingBox)
-		self.bt_frameAdd.on_clicked(self._nextFrame)
 		self.bt_frameClear.on_clicked(self._clearFrame)
+		self.bt_framePrevious.on_clicked(self._previousFrame)
+		self.bt_frameAdd.on_clicked(self._nextFrame)
 
 		# Show figure
 		plt.show()
@@ -187,8 +189,8 @@ class ObjectLabeler():
 		self.annotation.coords = xy + (width, height)
 
 	def _keypress(self, event):
-		if event.key in ['m', 'f', 'o', 'u']:
-			self.bt_radio.set_active(['m', 'f', 'o', 'u'].index(event.key))
+		if event.key in ['m', 'f', 'u']:
+			self.bt_radio.set_active(['m', 'f', 'u'].index(event.key))
 			#self.fig.canvas.draw()
 		elif event.key == 'a':
 			self._addBoundingBox(event)
@@ -198,6 +200,8 @@ class ObjectLabeler():
 			self._nextFrame(event)
 		elif event.key == 'r':
 			self._clearFrame(event)
+		elif event.key == 'p':
+			self._previousFrame(event)
 		else:
 			pass
 
@@ -207,8 +211,8 @@ class ObjectLabeler():
 			self.fig.canvas.draw()
 			return
 
-		displayed_names = [r"$\bf{M}$" + 'ale',r"$\bf{F}$" + 'emale',r"$\bf{O}$" +'ccluded',r"$\bf{U}$" +'nknown']
-		stored_names = ['m','f','o','u']
+		displayed_names = [r"$\bf{M}$" + 'ale',r"$\bf{F}$" + 'emale',r"$\bf{U}$" +'nknown']
+		stored_names = ['m','f','u']
 		
 		self.annotation.sex = stored_names[displayed_names.index(self.bt_radio.value_selected)]
 
@@ -266,8 +270,9 @@ class ObjectLabeler():
 			self.f_dt['Nfish'] = len(self.f_dt)
 		self.dt = self.dt.append(self.f_dt, sort=True)
 		# Save dataframe (in case user quits)
-		self.dt.to_csv(self.annotationFile, sep = ',')
+		self.dt.to_csv(self.annotationFile, sep = ',', columns = ['Framefile', 'Nfish', 'Sex', 'Box', 'User', 'DateTime'])
 		self.f_dt = pd.DataFrame(columns=['Framefile','Sex', 'Box', 'User', 'DateTime'])
+		self.annotated_frames.append(self.frame_index)
 
 		# Remove old patches
 		self.ax_image.patches = []
@@ -281,7 +286,7 @@ class ObjectLabeler():
 		while len(self.dt[(self.dt.Framefile == self.frames[self.frame_index]) & (self.dt.User == self.user)]) != 0:
 			self.frame_index += 1
 
-		if self.frame_index == len(self.frames):
+		if self.frame_index == len(self.frames) or len(self.annotated_frames) == self.number:
 
 			# Disconnect connections and close figure
 			plt.close(self.fig)
@@ -312,8 +317,43 @@ class ObjectLabeler():
 		# Reset annotations
 		self.annotation = Annotation(self)
 
-if not os.path.exists('MLFrames'):
-	subprocess.run(['rclone', 'copy', 'cichlidVideo:McGrath/Apps/CichlidPiData/TI2_5_newtray/MLFrames.tar', '.'])
-	subprocess.run(['tar', '-xvf', 'MLFrames.tar'])
+	def _previousFrame(self, event):
+		self.frame_index = self.annotated_frames.pop()
+		print(self.dt)
+		self.dt = self.dt[self.dt.Framefile != self.frames[self.frame_index]]
+		print(self.dt)
+		self._clearFrame(event)
+		# Load new image and save it as the background
+		img = plt.imread(self.frameDirectory + self.frames[self.frame_index])
+		self.image_obj.set_array(img)
+		self.ax_image.set_title('Frame ' + str(self.frame_index) + ': ' + self.frames[self.frame_index])
+		self.fig.canvas.draw()
 
-obj = ObjectLabeler('MLFrames/', 'AnnotationFile.csv')
+parser = argparse.ArgumentParser(description='This command runs HMM analysis on a single row of data.')
+parser.add_argument('ProjectID', type = str, help = 'ProjectID to analyze')
+parser.add_argument('-n', '--Number', type = int, help = 'Limit annotation to x number of frames.')
+parser.add_argument('-p', '--Practice', action = 'store_true', help = 'Use if you dont want to save annotations')
+
+args = parser.parse_args()
+
+fileManager = FM()
+projFileManager = fileManager.retProjFileManager(args.ProjectID)
+projFileManager.downloadData('ObjectLabeler')
+obj = ObjectLabeler(projFileManager.localManualLabelFramesDir, projFileManager.localLabeledFramesFile, args.Number)
+
+if not args.Practice:
+	# Backup annotations. Redownload to avoid race conditions
+	if not os.path.exists(projFileManager.localLabeledFramesFile):
+		pass
+	else:
+		new_DT = pd.read_csv(projFileManager.localLabeledFramesFile, index_col = 0)
+		subprocess.run(['mv', projFileManager.localLabeledFramesFile, projFileManager.localLabeledFramesFile + '.backup'], stderr = subprocess.PIPE)
+		subprocess.run(['rclone', 'copy', projFileManager.cloudLabeledFramesFile, projFileManager.localAnalysisDir], stderr = subprocess.PIPE)
+
+		if os.path.exists(projFileManager.localLabeledFramesFile):
+			old_DT = pd.read_csv(projFileManager.localLabeledFramesFile, index_col = 0)
+			new_DT = old_DT.append(new_DT, sort=True).drop_duplicates()
+		new_DT.to_csv(projFileManager.localLabeledFramesFile, sep = ',', columns = ['Framefile', 'Nfish', 'Sex', 'Box', 'User', 'DateTime'])
+		subprocess.run(['rclone', 'copy', projFileManager.localLabeledFramesFile, projFileManager.cloudAnalysisDir], stderr = subprocess.PIPE)
+
+subprocess.run(['rm', '-rf', projFileManager.localMasterDir], stderr = subprocess.PIPE)
