@@ -29,7 +29,7 @@ class ProjectPreparer():
 	def runPacePrep(self):
 		self.fileManager.createDirs()
 		self.projFileManager.downloadData('PacePrep')
-		pbs_obj = PBS(self.projFileManager)
+		pbs_obj = PBS(self.projFileManager, self.workers)
 		pbs_obj.validateInputData()
 		pbs_obj.createPBS()
 		self.createUploadFile(pbs_obj.uploads)
