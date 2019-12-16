@@ -4,7 +4,7 @@
 #PBS -l mem=9gb
 #PBS -q iw-shared-6
 #PBS -j oe
-#PBS -o ~/scratch/${PROJECT_ID}/Troubleshooting/DepthAnalysis.out
+#PBS -o ../Troubleshooting/DepthAnalysis.out
 #PBS -M ${EMAIL}
 #PBS -m abe
 
