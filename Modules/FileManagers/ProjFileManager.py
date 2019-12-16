@@ -1,7 +1,7 @@
 import os, subprocess, pdb
 
 
-class ProjFileManager():
+class ProjFileManager:
 	def __init__(self, localMasterDir, cloudMasterDir, projectID, tempDir):
 		self.projectID = projectID
 		self.tempDir = tempDir
@@ -139,7 +139,9 @@ class ProjFileManager():
 			self.tempDir = 'Temp/'
 			self.localTempDir = self.localMasterDir + 'Temp/'
 		elif self.tempDir == 'LSS':
-			self.localTempDir = '${TMPDIR}'
+			self.localTempDir = '${TMPDIR}/'
+		else:
+			self.localTempDir = self.tempDir
 		# LocalFiles
 		self.localFirstFrame = self.localMasterDir + self.prepDir + 'FirstDepth.npy'
 		self.localLastFrame = self.localMasterDir + self.prepDir + 'LastDepth.npy'

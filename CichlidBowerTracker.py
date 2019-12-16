@@ -65,7 +65,7 @@ elif args.command == 'PacePrep':
 
 elif args.command == 'ProjectAnalysis':
 
-	if args.DownloadOnly and args.AnalysisType in ['Download','Backup']:
+	if args.DownloadOnly and args.AnalysisType in ['Download', 'Backup']:
 		print('DownloadOnly flag cannot be used with Download or Backup AnalysisType')
 		sys.exit()
 
