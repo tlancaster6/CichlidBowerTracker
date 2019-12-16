@@ -1,5 +1,6 @@
 #PBS -N ${PROJECT_ID}_ClusterAnalysis
 #PBS -l nodes=1:ppn=${WORKERS}:intel
+#PBS -l file=${LOCAL_SCRATCH}
 #PBS -l walltime=12:00:00
 #PBS -l pmem=2gb
 #PBS -q iw-shared-6

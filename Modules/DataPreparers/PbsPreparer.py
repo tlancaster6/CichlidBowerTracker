@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from string import Template
 from Modules.DataObjects.LogParser import LogParser as LP
 
@@ -34,6 +35,7 @@ class PbsPreparer:
              'PROJECT_ID': self.projFileManager.projectID,
              'TMPDIR': self.projFileManager.localTempDir,
              'WORKERS': self.workers,
+             'LOCAL_SCRATCH': str(int(np.ceil(70 / self.workers))) + 'g',
              'EMAIL': self.email}
         infile = open(os.path.join(os.getcwd(), 'Modules', 'PbsTemplates', 'ClusterAnalysis.pbs'), 'r')
         mod = Template(infile.read()).safe_substitute(d)

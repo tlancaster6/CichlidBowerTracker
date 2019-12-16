@@ -31,7 +31,7 @@ class OutfileParser:
                         match = rx.search(line)
                         if match:
                             if (key == 'requested') or (key == 'used'):
-                                row.update([tuple(item.split('=', 1)) for item in re.split(r',|.:\D', match.group(key))])
+                                row.update([tuple(item.split('=', 1)) for item in re.split(r',|(?=.):(?=\D)', match.group(key))])
                             else:
                                 row.update({key: match.group(key)})
                             if 'outcome' not in row.keys():
