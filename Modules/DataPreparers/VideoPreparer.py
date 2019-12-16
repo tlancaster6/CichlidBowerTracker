@@ -33,9 +33,15 @@ class VideoPreparer:
 		self._decompressVideo()
 		self._calculateHMM()
 		self._createClusters()
-		self._createAnnotationFiles()
+		self._createAnnotationVideos()
+		self._createAnnotationFrames()
+		
 		subprocess.run(['rm', '-rf', self.videoObj.localTempDir])
 		return self.clusterData
+
+	def createAnnotationFrames(self):
+		self._validateVideo()
+		self._createAnnotationFrames()
 
 	def readClusterData(self):
 		self.clusterData = pd.read_csv(self.videoObj.localLabeledClustersFile, sep = ',', index_col = 'LID')
@@ -139,8 +145,10 @@ class VideoPreparer:
 						assert out_data.shape == (self.videoObj.width, self.HMMsecs)
 					except AssertionError:
 						pdb.set_trace()
-			print(self.videoObj.localTempDir + 'Decompressed_' + str(block) + '.npy')
-			subprocess.run(['rm', '-f', self.videoObj.localTempDir + 'Decompressed_' + str(block) + '.npy'])
+			
+			for j in range(self.workers):
+				block = i + j
+				subprocess.run(['rm', '-f', self.videoObj.localTempDir + 'Decompressed_' + str(block) + '.npy'])
 		print()
 
 	def _calculateHMM(self):
@@ -262,7 +270,7 @@ class VideoPreparer:
 		clusterData.to_csv(self.videoObj.localLabeledClustersFile, sep = ',')
 		self.clusterData = clusterData
 
-	def _createAnnotationFiles(self):
+	def _createAnnotationVideos(self):
 		print('  Creating small video clips for classification,,Time: ' + str(datetime.datetime.now())) 
 
 		# Clip creation is super slow so we do it in parallel
@@ -318,6 +326,7 @@ class VideoPreparer:
 			assert(os.path.exists(outName_out))
 		cap.release()
 
+	def _createAnnotationFrames(self):
 		print('  Creating frames for manual labeling,,Time: ' + str(datetime.datetime.now())) 
 
 		# Create frames for manual labeling
