@@ -60,4 +60,13 @@ class VideoLoader(data.Dataset):
 		# Return tensor, label, and filename
 		return (transforms.ToTensor(cropped_data), self.labels[self.videofiles[i]], self.videofiles[i].split('/')[-1])
 
-videoLoader = VideoLoader('Clips/')
+class DetectedObjectImageLoader(data.Dataset):
+	def __init__(self, image_directory, labeled_csv):
+		self.image_directory = image_directory
+		self.images = [x for x in os.listdir(image_directory) if '.jpg' in x or '.png' in x and '._' not in x]
+
+		self.labeled_csv = labeled_csv
+		self.dt = pd.read_csv(labeled_csv, sep = ',')
+
+	def __get__item(self, index):
+		image = 
