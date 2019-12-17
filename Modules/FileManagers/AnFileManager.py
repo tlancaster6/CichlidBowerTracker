@@ -6,6 +6,7 @@ class AnFileManager():
 		self.annotationDir = '__AnnotatedData/'
 		self.localMasterDir = localMasterDir + self.annotationDir
 		self.cloudMasterDir = cloudMasterDir + self.annotationDir
+		self._createFileDirectoryNames()
 
 	def prepareVideoAnnotation(self, annotationID):
 		self.cloudClipDir = self.cloudMasterDir + 'LabeledVideos/' + annotationID + '/'
@@ -42,3 +43,45 @@ class AnFileManager():
 				print(clipName)
 
 		return self.localClipDir + 'LabeledClips/'
+
+	def downloadBoxedProject(self, projectID):
+		self.localBoxedImagesProjDir = self.localBoxedImagesDir + projectID + '/'
+		self._createDirectory(self.localBoxedFishesDir)
+		
+		print(['rclone', 'copy', self.cloudBoxesAnnotationFile, self.localBoxedFishesDir])
+		subprocess.run(['rclone', 'copy', self.cloudBoxesAnnotationFile, self.localBoxedFishesDir])
+		subprocess.run(['rclone', 'copy', self.cloudBoxedImagesDir + projectID + '.tar', self.localBoxedImagesDir])
+		if os.path.exists(self.localBoxedImagesDir + projectID + '.tar'):
+			subprocess.run(['tar', '-xvf', self.localBoxedImagesDir + projectID + '.tar', '-C', self.localBoxedImagesDir], stderr = subprocess.PIPE)
+		else:
+			self._createDirectory(self.localBoxedImagesProjDir)
+		subprocess.run(['rm', '-rf', self.localBoxedImagesDir + projectID + '.tar'], stderr = subprocess.PIPE)
+
+	def backupBoxedProject(self, projectID):
+		subprocess.run(['rclone', 'copy', self.localBoxesAnnotationFile, self.cloudBoxedFishesDir])
+		subprocess.run(['tar', '-cvf', self.localBoxedImagesDir + projectID + '.tar', '-C', self.localBoxedImagesDir, self.localBoxedImagesDir + projectID], stderr = subprocess.PIPE)
+		subprocess.run(['rclone', 'copy', self.localBoxedImagesDir + projectID + '.tar', self.cloudBoxedImagesDir])
+		subprocess.run(['rm', '-rf', self.localMasterDir], stderr = subprocess.PIPE)
+
+
+	def _createFileDirectoryNames(self):
+		self.localLabeledVideosDir = self.localMasterDir + 'LabeledVideos/'
+		self.cloudLabeledVideosDir = self.cloudMasterDir + 'LabeledVideos/'
+			
+		self.boxedFishes = 'BoxedFishes/'
+		self.localBoxedFishesDir = self.localMasterDir + 'BoxedFish/'
+		self.cloudBoxedFishesDir = self.cloudMasterDir + 'BoxedFish/'
+
+		self.boxesAnnotationFile = 'BoxedFish.csv'
+		self.localBoxesAnnotationFile = self.localBoxedFishesDir + self.boxesAnnotationFile
+		self.cloudBoxesAnnotationFile = self.cloudBoxedFishesDir + self.boxesAnnotationFile
+
+		self.boxedImagesDir = 'BoxedImages/'
+		self.localBoxedImagesDir = self.localBoxedFishesDir + self.boxedImagesDir
+		self.cloudBoxedImagesDir = self.cloudBoxedFishesDir + self.boxedImagesDir
+
+	
+	def _createDirectory(self, directory):
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+

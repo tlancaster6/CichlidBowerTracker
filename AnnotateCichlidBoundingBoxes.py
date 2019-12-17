@@ -339,6 +339,9 @@ args = parser.parse_args()
 fileManager = FM()
 projFileManager = fileManager.retProjFileManager(args.ProjectID)
 projFileManager.downloadData('ObjectLabeler')
+
+anFileManager = fileManager.retAnFileManager()
+
 obj = ObjectLabeler(projFileManager.localManualLabelFramesDir, projFileManager.localLabeledFramesFile, args.Number)
 
 if not args.Practice:
@@ -346,14 +349,30 @@ if not args.Practice:
 	if not os.path.exists(projFileManager.localLabeledFramesFile):
 		pass
 	else:
+		# Backup to the project directory
 		new_DT = pd.read_csv(projFileManager.localLabeledFramesFile, index_col = 0)
 		subprocess.run(['mv', projFileManager.localLabeledFramesFile, projFileManager.localLabeledFramesFile + '.backup'], stderr = subprocess.PIPE)
 		subprocess.run(['rclone', 'copy', projFileManager.cloudLabeledFramesFile, projFileManager.localAnalysisDir], stderr = subprocess.PIPE)
 
 		if os.path.exists(projFileManager.localLabeledFramesFile):
 			old_DT = pd.read_csv(projFileManager.localLabeledFramesFile, index_col = 0)
-			new_DT = old_DT.append(new_DT, sort=True).drop_duplicates()
-		new_DT.to_csv(projFileManager.localLabeledFramesFile, sep = ',', columns = ['Framefile', 'Nfish', 'Sex', 'Box', 'User', 'DateTime'])
+			backup_DT = old_DT.append(new_DT, sort=True).drop_duplicates()
+		else:
+			backup_DT = new_DT
+		backup_DT.to_csv(projFileManager.localLabeledFramesFile, sep = ',', columns = ['Framefile', 'Nfish', 'Sex', 'Box', 'User', 'DateTime'])
 		subprocess.run(['rclone', 'copy', projFileManager.localLabeledFramesFile, projFileManager.cloudAnalysisDir], stderr = subprocess.PIPE)
+
+		# Backup to the annotation direction
+		anFileManager.downloadBoxedProject(args.ProjectID)
+		old_DT = pd.read_csv(anFileManager.localBoxesAnnotationFile)
+		backup_DT = old_DT.append(new_DT, sort=True).drop_duplicates()
+		backup_DT.to_csv(projFileManager.localLabeledFramesFile, sep = ',', columns = ['Framefile', 'Nfish', 'Sex', 'Box', 'User', 'DateTime'])
+		
+		# Add videos
+		for row in old_DT.itertuples():
+			if not os.path.exists(anFileManager.localBoxedImagesProjDir + row.Framefile):
+				subprocess.run(['cp', projFileManager.localManualLabelFramesDir + row.Framefile, anFileManager.localBoxedImagesProjDir])
+
+		anFileManager.backupBoxedProject(args.ProjectID)
 
 subprocess.run(['rm', '-rf', projFileManager.localMasterDir], stderr = subprocess.PIPE)

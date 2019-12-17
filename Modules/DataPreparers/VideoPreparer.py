@@ -7,7 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 
 import numpy as np
 import pandas as pd
-import os, cv2, math, datetime, subprocess, pdb, random
+import os, cv2, math, datetime, subprocess, pdb, random, sys
 
 class VideoPreparer:
 	# This class takes in directory information and a logfile containing depth information and performs the following:
@@ -64,11 +64,14 @@ class VideoPreparer:
 
 		print('  VideoValidation: Size: ' + str((new_height,new_width)) + ',,fps: ' + str(new_framerate) + ',,Frames: ' + str(new_frames) + ',,PredictedFrames: ' + str(predicted_frames))
 
-		assert new_height == self.videoObj.height
-		assert new_width == self.videoObj.width
-		assert abs(new_framerate - self.videoObj.framerate) < tol*self.videoObj.framerate
-		assert abs(predicted_frames - new_frames) < tol*predicted_frames
-
+		try:
+			assert new_height == self.videoObj.height
+			assert new_width == self.videoObj.width
+			assert abs(new_framerate - self.videoObj.framerate) < tol*self.videoObj.framerate
+			assert abs(predicted_frames - new_frames) < tol*predicted_frames
+		except AssertionError as e:
+			print('Video validation error for ' + self.videofile, file = sys.stderr)
+			print(e, file = sys.stderr)
 		self.frames = new_frames
 
 		cap.release()
@@ -345,10 +348,15 @@ class VideoPreparer:
 		last_frame = min(self.frames, last_frame)
 
 		for i in range(int(self.projFileManager.nManualLabelFrames/len(self.lp.movies))):
-			frameIndex = random.randint(first_frame, last_frame)
+			try:
+				frameIndex = random.randint(first_frame, last_frame)
+			except ValueError:
+				print('Error with frameIndex: ' + self.lp.projectID + ',,' + self.videofile, file = sys.stderr)
+				break
 			cap.set(cv2.CAP_PROP_POS_FRAMES, frameIndex)
 			ret, frame = cap.read()
 			cv2.imwrite(self.projFileManager.localManualLabelFramesDir + self.lp.projectID + '_' + self.videoObj.baseName + '_' + str(frameIndex) + '.jpg', frame)     # save frame as JPEG file      
+			cv2.imwrite(self.projFileManager.localManualLabelFramesDir[:-1] + '_pngs/' + self.lp.projectID + '_' + self.videoObj.baseName + '_' + str(frameIndex) + '.png', frame)     # save frame as PNG file      
 
  
 

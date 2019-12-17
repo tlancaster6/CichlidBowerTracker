@@ -24,6 +24,8 @@ class ProjFileManager():
 			self._createDirectory(self.localAllClipsDir)
 			self._createDirectory(self.localManualLabelClipsDir)
 			self._createDirectory(self.localManualLabelFramesDir)
+			self._createDirectory(self.localManualLabelFramesDir[:-1] + '_pngs')
+
 
 		elif dtype == 'Prep':
 			self._createDirectory(self.localMasterDir)
@@ -50,6 +52,8 @@ class ProjFileManager():
 			self._createDirectory(self.localAllClipsDir)
 			self._createDirectory(self.localManualLabelClipsDir)
 			self._createDirectory(self.localManualLabelFramesDir)
+			self._createDirectory(self.localManualLabelFramesDir[:-1] + '_pngs')
+
 
 		elif dtype == 'MLClassification':
 			self._createDirectory(self.localMasterDir)
@@ -66,7 +70,12 @@ class ProjFileManager():
 
 		elif dtype == 'ObjectLabeler':
 			self._createDirectory(self.localMasterDir)
+			self._createDirectory(self.localAnalysisDir)
 			self._downloadDirectory(self.manualLabelFramesDir)
+			try:
+				self._downloadFile(self.labeledFramesFile, self.localAnalysisDir, self.cloudAnalysisDir)
+			except FileNotFoundError:
+				pass
 		else:
 			raise KeyError('Unknown key: ' + dtype)
 
@@ -148,6 +157,10 @@ class ProjFileManager():
 		self.localPrepSummaryFigure = self.localFiguresDir + 'PrepSummary.pdf' 
 
 		self.localAllLabeledClustersFile = self.localAnalysisDir + 'AllLabeledClusters.csv'
+		
+		self.labeledFramesFile = 'LabeledFrames.csv'
+		self.localLabeledFramesFile = self.localAnalysisDir + 'LabeledFrames.csv'
+		self.cloudLabeledFramesFile = self.cloudAnalysisDir + 'LabeledFrames.csv'
 
 	def _createParameters(self):
 
@@ -189,9 +202,14 @@ class ProjFileManager():
 		if not os.path.exists(directory):
 			os.makedirs(directory)
 
-	def _downloadFile(self, dfile):
-		subprocess.call(['rclone', 'copy', self.cloudMasterDir + dfile, self.localMasterDir])
-		if not os.path.exists(self.localMasterDir + dfile):
+	def _downloadFile(self, dfile, localMasterDir = None, cloudMasterDir = None):
+		if localMasterDir is None:
+			localMasterDir = self.localMasterDir
+		if cloudMasterDir is None:
+			cloudMasterDir = self.cloudMasterDir
+
+		subprocess.run(['rclone', 'copy', cloudMasterDir + dfile, localMasterDir], stderr = subprocess.PIPE)
+		if not os.path.exists(localMasterDir + dfile):
 			raise FileNotFoundError('Unable to download ' + dfile + ' from ' + self.cloudMasterDir)
 
 	def _downloadDirectory(self, directory):
