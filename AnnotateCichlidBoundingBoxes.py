@@ -329,7 +329,6 @@ class ObjectLabeler():
 		self.ax_image.set_title('Frame ' + str(self.frame_index) + ': ' + self.frames[self.frame_index])
 		self.fig.canvas.draw()
 
-
 parser = argparse.ArgumentParser(description='This command runs HMM analysis on a single row of data.')
 parser.add_argument('ProjectID', type = str, help = 'ProjectID to analyze')
 parser.add_argument('-n', '--Number', type = int, help = 'Limit annotation to x number of frames.')

@@ -35,7 +35,7 @@ class PbsPreparer:
              'PROJECT_ID': self.projFileManager.projectID,
              'TMPDIR': self.projFileManager.localTempDir,
              'WORKERS': self.workers,
-             'LOCAL_SCRATCH': str(int(np.ceil(70 / self.workers))) + 'g',
+             'LOCAL_SCRATCH': str(int(np.ceil(80000 / self.workers))) + 'm',
              'EMAIL': self.email,
              'BRAND': 'amd' if self.workers > 28 else 'intel'}
         infile = open(os.path.join(os.getcwd(), 'Modules', 'PbsTemplates', 'ClusterAnalysis.pbs'), 'r')
