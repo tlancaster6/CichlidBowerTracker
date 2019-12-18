@@ -185,12 +185,12 @@ if args.command == 'TotalProjectAnalysis':
 			r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
 			r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
 
-			print('Downloading data to Pace', file=f)
-			print('Downloading data to Pace')
-			downloadCommand = ('module load anaconda3; '
-							   'conda activate CichlidBowerTracker; '
-							   'python3 CichlidBowerTracker.py ProjectAnalysis Download {}'.format(projectID))
-			downloadProcess = datamover_shell.run(['sh', '-c', downloadCommand], cwd=code_dir, encoding='utf-8')
+			# print('Downloading data to Pace', file=f)
+			# print('Downloading data to Pace')
+			# downloadCommand = ('module load anaconda3; '
+			# 				   'conda activate CichlidBowerTracker; '
+			# 				   'python3 CichlidBowerTracker.py ProjectAnalysis Download {}'.format(projectID))
+			# downloadProcess = datamover_shell.run(['sh', '-c', downloadCommand], cwd=code_dir, encoding='utf-8')
 
 
 			print('Submitting pbs scripts', file=f)
