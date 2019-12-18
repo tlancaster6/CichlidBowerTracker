@@ -1,5 +1,5 @@
 from __future__ import print_function
-import argparse, os, pdb, sys, subprocess, spur, getpass, time
+import argparse, sys, subprocess
 from Modules.DataPreparers.AnalysisPreparer import AnalysisPreparer as AP
 from Modules.DataPreparers.ProjectPreparer import ProjectPreparer as PP
 
@@ -109,6 +109,8 @@ elif args.command == 'ProjectAnalysis':
 		pp_obj.parseOutfiles()
 
 if args.command == 'TotalProjectAnalysis':
+	if args.Computer == 'PACE':
+		import spur, getpass, time
 	ap_obj = AP()
 	if ap_obj.checkProjects(args.ProjectIDs):
 		sys.exit()
@@ -185,7 +187,11 @@ if args.command == 'TotalProjectAnalysis':
 
 			print('Downloading data to Pace', file=f)
 			print('Downloading data to Pace')
-			downloadProcess = datamover_shell.run(['python', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Download', projectID], cwd=code_dir, encoding='utf-8')
+			downloadCommand = ('module load Anaconda3; '
+							   'conda activate CichlidBowerTracker; '
+							   'python 3 CichlidBowerTracker.py ProjectAnalysis Download {}'.format(projectID))
+			downloadProcess = datamover_shell.run(['sh', '-c', downloadCommand], cwd=code_dir, encoding='utf-8')
+
 
 			print('Submitting pbs scripts', file=f)
 			print('Submitting pbs scripts')
@@ -207,7 +213,10 @@ if args.command == 'TotalProjectAnalysis':
 
 			time.sleep(6000)
 
-			backupProcess = datamover_shell.spawn(['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Backup', projectID], encoding = 'utf-8')
+			backupCommand = ('module load anaconda3; '
+							 'conda activate CichlidBowerTracker; '
+							 'python3 CichlidBowerTracker.py ProjectAnalysis Backup {}'.format(projectID))
+			backupProcess = datamover_shell.spawn(['sh', '-c', backupCommand], encoding='utf-8')
 
 	f.close()
 	summarizeProcess = subprocess.run(['python3', 'CichlidBowerTracker.py', 'UpdateAnalysisSummary'])
