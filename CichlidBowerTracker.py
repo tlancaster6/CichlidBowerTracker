@@ -187,7 +187,7 @@ if args.command == 'TotalProjectAnalysis':
 
 			print('Downloading data to Pace', file=f)
 			print('Downloading data to Pace')
-			downloadCommand = ('module load Anaconda3; '
+			downloadCommand = ('module load anaconda3; '
 							   'conda activate CichlidBowerTracker; '
 							   'python3 CichlidBowerTracker.py ProjectAnalysis Download {}'.format(projectID))
 			downloadProcess = datamover_shell.run(['sh', '-c', downloadCommand], cwd=code_dir, encoding='utf-8')
