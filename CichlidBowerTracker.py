@@ -1,6 +1,8 @@
+from __future__ import print_function
 import argparse, os, pdb, sys, subprocess, spur, getpass, time
 from Modules.DataPreparers.AnalysisPreparer import AnalysisPreparer as AP
 from Modules.DataPreparers.ProjectPreparer import ProjectPreparer as PP
+
 
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers(help='Available Commands', dest='command')
@@ -183,9 +185,7 @@ if args.command == 'TotalProjectAnalysis':
 
 			print('Downloading data to Pace', file=f)
 			print('Downloading data to Pace')
-			datamover_shell.run(['module', 'load', 'anaconda3'])
-			datamover_shell.run(['conda', 'activate', 'CichlidBowerTracker'])
-			downloadProcess = datamover_shell.run(['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Download', projectID], cwd=code_dir, encoding='utf-8')
+			downloadProcess = datamover_shell.run(['python', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Download', projectID], cwd=code_dir, encoding='utf-8')
 
 			print('Submitting pbs scripts', file=f)
 			print('Submitting pbs scripts')

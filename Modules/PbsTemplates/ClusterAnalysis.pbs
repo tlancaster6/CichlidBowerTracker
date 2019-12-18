@@ -15,4 +15,4 @@ cd ~/data/CichlidBowerTracker
 echo "Started on `/bin/hostname`"
 module load anaconda3
 source activate CichlidBowerTracker
-python CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w ${WORKERS} -v ${PBS_ARRAYID} -t ${TMPDIR}
+python3 CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w ${WORKERS} -v ${PBS_ARRAYID} -t ${TMPDIR}
