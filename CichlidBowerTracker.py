@@ -172,6 +172,7 @@ if args.command == 'TotalProjectAnalysis':
 		elif args.Computer == 'PACE':
 
 			pbs_dir = 'scratch/' + projectID + '/PBS'
+			code_dir = 'data/CichlidBowerTracker/'
 
 			print('Analyzing projectID: ' + projectID, file=f)
 			print('Analyzing projectID: ' + projectID)
@@ -182,7 +183,7 @@ if args.command == 'TotalProjectAnalysis':
 
 			print('Downloading data to Pace', file=f)
 			print('Downloading data to Pace')
-			downloadProcess = datamover_shell.run(['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Download', projectID], encoding = 'utf-8')
+			downloadProcess = datamover_shell.run(['python', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Download', projectID], cwd=code_dir, encoding='utf-8')
 
 			print('Submitting pbs scripts', file=f)
 			print('Submitting pbs scripts')
@@ -204,7 +205,7 @@ if args.command == 'TotalProjectAnalysis':
 
 			time.sleep(6000)
 
-			backupProcess = datamover_shell.spawn(['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Backup', projectID], encoding = 'utf-8')
+			backupProcess = datamover_shell.spawn(['python', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Backup', projectID], encoding = 'utf-8')
 
 	f.close()
 	summarizeProcess = subprocess.run(['python3', 'CichlidBowerTracker.py', 'UpdateAnalysisSummary'])
