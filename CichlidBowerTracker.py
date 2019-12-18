@@ -1,4 +1,4 @@
-import argparse, os, pdb, sys, subprocess
+import argparse, os, pdb, sys, subprocess, spur, getpass, time
 from Modules.DataPreparers.AnalysisPreparer import AnalysisPreparer as AP
 from Modules.DataPreparers.ProjectPreparer import ProjectPreparer as PP
 
@@ -12,29 +12,27 @@ summarizeParser = subparsers.add_parser('UpdateAnalysisSummary', help='This comm
 prepParser = subparsers.add_parser('ManualPrep', help='This command takes user interaction to identify depth crops, RGB crops, and register images')
 prepParser.add_argument('-p', '--ProjectIDs', nargs = '+', required = True, type = str, help = 'Manually identify the projects you want to analyze. If All is specified, all non-prepped projects will be analyzed')
 prepParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
+prepParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
+
+pacePrepParser = subparsers.add_parser('PacePrep', help='This command generates the pbs scripts that will be necessary to run analysis of a project on PACE')
+pacePrepParser.add_argument('-p', '--ProjectIDs', nargs = '+', required = True, type = str, help = 'Manually identify the projects you want to analyze')
+pacePrepParser.add_argument('-t', '--TempDir', type=str, help='Optional. Manually designate the temp directory. Enter LSS to use local scratch storage on PACE', default=None)
+pacePrepParser.add_argument('-m', '--Email', type=str, help='Optional. Enter an email that will receive updates during PACE analysis')
+pacePrepParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control the max number of workers used for an individual job', default = 64)
 
 projectParser = subparsers.add_parser('ProjectAnalysis', help='This command performs a single type of analysis of the project. It is meant to be chained together to perform the entire analysis')
-projectParser.add_argument('AnalysisType', type = str, choices=['Download','Depth','Cluster','CreateFrames','MLClassification', 'MLFishDetection','Figures','Backup'], help = 'What type of analysis to perform')
+projectParser.add_argument('AnalysisType', type = str, choices=['Download','Depth','Cluster','CreateFrames','MLClassification', 'MLFishDetection','Figures','Backup', 'Outfiles'], help = 'What type of analysis to perform')
 projectParser.add_argument('ProjectID', type = str, help = 'Which projectID you want to identify')
 projectParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
 projectParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
 projectParser.add_argument('-d', '--DownloadOnly', action = 'store_true', help = 'Use if you only want to download the data for a specific analysis')
 projectParser.add_argument('-v', '--VideoIndex', type = int, help = 'Restrict cluster analysis to single video')
-projectParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired', default=None)
-
-paceParser = subparsers.add_parser('PacePrep', help='Run this command to create the necessary pbs scripts for analysis on PACE')
-paceParser.add_argument('ProjectID', type = str, help = 'Which projectID you want to identify')
-paceParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
-paceParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
-paceParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired. Pass LSS to use local scratch storage on PACE', default=None)
-paceParser.add_argument('-m', '--Email', type=str, help='Optional. Enter an Email to notify when scripts start, stop, or fail')
+projectParser.add_argument('-t', '--TempDir', type=str, help='Optional. Manually designate the temp directory. Enter LSS to use local scratch storage on PACE', default=None)
+projectParser.add_argument('-m', '--Email', type=str, help='Optional. Enter an email that will receive updates during PACE analysis')
 
 totalProjectsParser = subparsers.add_parser('TotalProjectAnalysis', help='This command runs the entire pipeline on list of projectIDs')
 totalProjectsParser.add_argument('Computer', type = str, choices=['NURF','SRG','PACE'], help = 'What computer are you running this analysis from?')
 totalProjectsParser.add_argument('-p', '--ProjectIDs', nargs = '+', required = True, type = str, help = 'Manually identify the projects you want to analyze. If All is specified, all non-prepped projects will be analyzed')
-totalProjectsParser.add_argument('-w', '--Workers', type = int, help = 'Use if you want to control how many workers this analysis uses', default = 1)
-totalProjectsParser.add_argument('-g', '--GPUs', type = int, help = 'Use if you want to control how many GPUs this analysis uses', default = 1)
-totalProjectsParser.add_argument('-t', '--TempDir', type=str, help='Manually designate the temp directory location if desired. Pass LSS to use local scratch storage on PACE', default=None)
 
 args = parser.parse_args()
 
@@ -55,13 +53,18 @@ elif args.command == 'ManualPrep':
 	for projectID in args.ProjectIDs:
 		pp_obj = PP(projectID, args.Workers)
 		pp_obj.runPrepAnalysis()
-		
+
 	#pp_obj.backupAnalysis()
 	ap_obj.updateAnalysisFile(newProjects = False, projectSummary = False)
 
 elif args.command == 'PacePrep':
-	pp_obj = PP(args.ProjectID, args.Workers, args.TempDir)
-	pp_obj.runPacePrep(args.Email)
+	ap_obj = AP()
+	if ap_obj.checkProjects(args.ProjectIDs):
+		sys.exit()
+
+	for projectID in args.ProjectIDs:
+		pp_obj = PP(projectID, args.Workers, args.TempDir)
+		pp_obj.runPacePrep(args.Email)
 
 elif args.command == 'ProjectAnalysis':
 
@@ -75,6 +78,9 @@ elif args.command == 'ProjectAnalysis':
 
 	if args.AnalysisType == 'Download' or args.DownloadOnly:
 		pp_obj.downloadData(args.AnalysisType)
+
+	elif args.AnalysisType == 'PacePrep':
+		pp_obj.runPacePrep(args.Email)
 
 	elif args.AnalysisType == 'Depth':
 		pp_obj.runDepthAnalysis()
@@ -97,11 +103,17 @@ elif args.command == 'ProjectAnalysis':
 	elif args.AnalysisType == 'Backup':
 		pp_obj.backupAnalysis()
 
+	elif args.AnalysisType == 'Outfiles':
+		pp_obj.parseOutfiles()
+
 if args.command == 'TotalProjectAnalysis':
 	ap_obj = AP()
 	if ap_obj.checkProjects(args.ProjectIDs):
 		sys.exit()
 	f = open('Analysis.log', 'w')
+	if args.Computer == 'PACE':
+		uname = input('Username: ')
+		pword = getpass.getpass()
 	for projectID in args.ProjectIDs:
 		if args.Computer == 'SRG':
 			print('Analyzing projectID: ' + projectID, file = f)
@@ -155,9 +167,45 @@ if args.command == 'TotalProjectAnalysis':
 				print('DepthError: ' + depthOut[1])
 				print('ClusterError: ' + clusterOut[1])
 				sys.exit()
-
-
 			backupProcess = subprocess.run(['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Backup', projectID], stderr = subprocess.PIPE, stdout = subprocess.PIPE, encoding = 'utf-8')
+
+		elif args.Computer == 'PACE':
+
+			pbs_dir = 'scratch/' + projectID + '/PBS'
+
+			print('Analyzing projectID: ' + projectID, file=f)
+			print('Analyzing projectID: ' + projectID)
+
+			datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
+			r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
+			r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
+
+			print('Downloading data to Pace', file=f)
+			print('Downloading data to Pace')
+			downloadProcess = datamover_shell.run(['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Download', projectID], encoding = 'utf-8')
+
+			print('Submitting pbs scripts', file=f)
+			print('Submitting pbs scripts')
+			depthProcess = r6_shell.run(['qsub', 'DepthAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
+			clusterProcess = r6_shell.run(['qsub', 'ClusterAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
+			job_ids = {'depth': str(depthProcess.output), 'cluster': str(clusterProcess.output)}
+			clusterProcessWrapup = r6_shell.run(['qsub', '-W', 'depend=afterok:{}'.format(job_ids['cluster']), 'PostClusterAnalysis.pbs'])
+			classifierProcess = r7_shell.run(['qsub', '-W', 'depend=afterok:{}'.format(str(clusterProcessWrapup.output)), 'MLClusterClassifier.pbs'])
+			job_ids.update({'classifier': str(classifierProcess.output)})
+			figureProcess = r6_shell.run(['qsub', '-W', 'depend=afterok:{0}:{1}'.format(job_ids['cluster'], job_ids['classifier']), 'FigurePreparer.pbs'])
+			job_ids.update({'figures': str(figureProcess.output)})
+			outfileProcess = r6_shell.run(['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs'])
+
+			print('All jobs submitted. Job IDs: ', file=f)
+			print('All jobs submitted. Job IDs: ')
+			for job, job_id in job_ids.items():
+				print('   ' + job + ':' + job_id, file=f)
+				print('   ' + job + ':' + job_id)
+
+			time.sleep(6000)
+
+			backupProcess = datamover_shell.spawn(['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Backup', projectID], encoding = 'utf-8')
+
 	f.close()
 	summarizeProcess = subprocess.run(['python3', 'CichlidBowerTracker.py', 'UpdateAnalysisSummary'])
 

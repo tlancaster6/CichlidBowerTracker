@@ -113,4 +113,4 @@ class FileManager():
 			print(command)
 			print(output.stderr)
 			pdb.set_trace()
-			raise Exception('rclone was not able to sync ' + directory)
+			raise Exception('rclone was not able to sync ' + directory1)

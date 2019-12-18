@@ -1,0 +1,15 @@
+#PBS -N ${PROJECT_ID}_FigurePrep
+#PBS -l nodes=1:ppn=1
+#PBS -l feature=intel
+#PBS -l walltime=1:00:00
+#PBS -q iw-shared-6
+#PBS -j oe
+#PBS -o ../Troubleshooting/FigurePrep.out
+#PBS -M ${EMAIL}
+#PBS -m abe
+
+cd ~/data/CichlidBowerTracker
+echo "Started on `/bin/hostname`"
+module load anaconda3
+source activate CichlidBowerTracker
+python CichlidBowerTracker.py ProjectAnalysis Figures ${PROJECT_ID} -w 1

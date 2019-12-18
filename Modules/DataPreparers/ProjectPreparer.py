@@ -7,6 +7,7 @@ from Modules.DataPreparers.ClusterPreparer import ClusterPreparer as CP
 from Modules.DataPreparers.MLClusterPreparer import MLClusterPreparer as MLP
 from Modules.DataPreparers.FigurePreparer import FigurePreparer as FP
 from Modules.DataPreparers.PbsPreparer import PbsPreparer as PBS
+from Modules.DataPreparers.OutfilePreparer import OutfilePreparer as OP
 
 class ProjectPreparer():
 	# This class takes in a projectID and runs all the appropriate analysis
@@ -34,6 +35,7 @@ class ProjectPreparer():
 		pbs_obj.createPBS()
 		self.createUploadFile(pbs_obj.uploads)
 		self.createAnalysisUpdate('PacePrep', pbs_obj)
+		self.backupAnalysis()
 
 	def runPrepAnalysis(self):
 		self.fileManager.createDirs()
@@ -91,7 +93,10 @@ class ProjectPreparer():
 		lc_obj =LC(self.projFileManager)
 		lc_obj.validateInputData()
 
-
+	def parseOutfiles(self):
+		op_obj = OP(self.projFileManager)
+		op_obj.validateInputData()
+		op_obj.parseOutfiles()
 
 	def backupAnalysis(self):
 		uploadCommands = set()

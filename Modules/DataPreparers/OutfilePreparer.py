@@ -4,7 +4,7 @@ import pandas as pd
 """Reads the output/error files produced by a PACE run and parses the information into a dataframe"""
 
 
-class OutfileParser:
+class OutfilePreparer:
 
     def __init__(self, projFileManager):
         self.projFileManager = projFileManager
@@ -14,7 +14,8 @@ class OutfileParser:
             'Error: No Outfiles in Local Troubleshooting Directory'
 
     def parseOutfiles(self):
-        regexes = {'video': re.compile(r'Processing video: Videos/(?P<video>.*),'),
+        regexes = {'job_id': re.compile(r'Job id:(?P<job_id>.*)\n'),
+                   'job_name': re.compile(r'Job name:(?P<job_name>.*)\n'),
                    'requested': re.compile(r'Resources:(?P<requested>.*)\n'),
                    'used': re.compile(r'Rsrc Used:(?P<used>.*)\n'),
                    'start': re.compile(r'Begin PBS Prologue (?P<start>.*)\n'),
