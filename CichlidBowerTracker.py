@@ -198,12 +198,12 @@ if args.command == 'TotalProjectAnalysis':
 			depthProcess = r6_shell.run(['qsub', 'DepthAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
 			clusterProcess = r6_shell.run(['qsub', 'ClusterAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
 			job_ids = {'depth': str(depthProcess.output), 'cluster': str(clusterProcess.output)}
-			clusterProcessWrapup = r6_shell.run(['qsub', '-W', 'depend=afterok:{}'.format(job_ids['cluster']), 'PostClusterAnalysis.pbs'])
-			classifierProcess = r7_shell.run(['qsub', '-W', 'depend=afterok:{}'.format(str(clusterProcessWrapup.output)), 'MLClusterClassifier.pbs'])
+			clusterProcessWrapup = r6_shell.run(['qsub', '-W', 'depend=afterok:{}'.format(job_ids['cluster']), 'PostClusterAnalysis.pbs'],  cwd=pbs_dir, encoding='utf-8')
+			classifierProcess = r7_shell.run(['qsub', '-W', 'depend=afterok:{}'.format(str(clusterProcessWrapup.output)), 'MLClusterClassifier.pbs'], cwd=pbs_dir, encoding='utf-8')
 			job_ids.update({'classifier': str(classifierProcess.output)})
-			figureProcess = r6_shell.run(['qsub', '-W', 'depend=afterok:{0}:{1}'.format(job_ids['cluster'], job_ids['classifier']), 'FigurePreparer.pbs'])
+			figureProcess = r6_shell.run(['qsub', '-W', 'depend=afterok:{0}:{1}'.format(job_ids['cluster'], job_ids['classifier']), 'FigurePreparer.pbs'], cwd=pbs_dir, encoding='utf-8')
 			job_ids.update({'figures': str(figureProcess.output)})
-			outfileProcess = r6_shell.run(['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs'])
+			outfileProcess = r6_shell.run(['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs'], cwd=pbs_dir, encoding='utf-8')
 
 			print('All jobs submitted. Job IDs: ', file=f)
 			print('All jobs submitted. Job IDs: ')
