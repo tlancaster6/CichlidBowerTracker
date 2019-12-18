@@ -178,23 +178,23 @@ if args.command == 'TotalProjectAnalysis':
 			pbs_dir = 'scratch/' + projectID + '/PBS'
 			code_dir = 'data/CichlidBowerTracker/'
 
-			print('Analyzing projectID: ' + projectID, file=f)
-			print('Analyzing projectID: ' + projectID)
+			print(time.asctime() + ' -- Analyzing projectID: ' + projectID, file=f)
+			print(time.asctime() + ' -- Analyzing projectID: ' + projectID)
 
 			datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
 			r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
 			r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
 
-			print('Downloading data to Pace', file=f)
-			print('Downloading data to Pace')
+			print(time.asctime() + ' -- Downloading data to Pace', file=f)
+			print(time.asctime() + ' -- Downloading data to Pace')
 			downloadCommand = ('module load anaconda3; '
 							   'conda activate CichlidBowerTracker; '
 							   'python3 CichlidBowerTracker.py ProjectAnalysis Download {}'.format(projectID))
 			downloadProcess = datamover_shell.run(['sh', '-c', downloadCommand], cwd=code_dir, encoding='utf-8')
 
 
-			print('Submitting pbs scripts', file=f)
-			print('Submitting pbs scripts')
+			print(time.asctime() + ' -- Submitting pbs scripts', file=f)
+			print(time.asctime() + ' -- Submitting pbs scripts')
 			depthProcess = r6_shell.run(['qsub', 'DepthAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
 			clusterProcess = r6_shell.run(['qsub', 'ClusterAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
 			job_ids = {'depth': str(depthProcess.output), 'cluster': str(clusterProcess.output)}
@@ -205,18 +205,21 @@ if args.command == 'TotalProjectAnalysis':
 			job_ids.update({'figures': str(figureProcess.output)})
 			outfileProcess = r6_shell.run(['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs'])
 
-			print('All jobs submitted. Job IDs: ', file=f)
-			print('All jobs submitted. Job IDs: ')
+			print(time.asctime() + ' -- All jobs submitted. Job IDs: ', file=f)
+			print(time.asctime() + ' -- All jobs submitted. Job IDs: ')
 			for job, job_id in job_ids.items():
 				print('   ' + job + ':' + job_id, file=f)
 				print('   ' + job + ':' + job_id)
 
 			time.sleep(6000)
 
+			print(time.asctime() + ' -- Backing up analysis to Dropbox')
 			backupCommand = ('module load anaconda3; '
 							 'conda activate CichlidBowerTracker; '
 							 'python3 CichlidBowerTracker.py ProjectAnalysis Backup {}'.format(projectID))
-			backupProcess = datamover_shell.spawn(['sh', '-c', backupCommand], encoding='utf-8')
+			backupProcess = datamover_shell.run(['sh', '-c', backupCommand], encoding='utf-8')
+
+			print(time.asctime() + ' -- Analysis complete for ' + projectID + '\n\n')
 
 	f.close()
 	summarizeProcess = subprocess.run(['python3', 'CichlidBowerTracker.py', 'UpdateAnalysisSummary'])
