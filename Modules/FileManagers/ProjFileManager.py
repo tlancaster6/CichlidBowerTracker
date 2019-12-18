@@ -26,6 +26,7 @@ class ProjFileManager:
 			self._createDirectory(self.localManualLabelClipsDir)
 			self._createDirectory(self.localManualLabelFramesDir)
 			self._createDirectory(self.localManualLabelFramesDir[:-1] + '_pngs')
+			self._createDirectory(self.localPbsDir)
 
 
 		elif dtype == 'Prep':
