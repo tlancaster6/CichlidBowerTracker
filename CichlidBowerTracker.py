@@ -156,9 +156,8 @@ if args.command == 'TotalProjectAnalysis':
         datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
         r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
         r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
-        f = r6_shell.open('data/CichlidBowerTracker/AnalysisLogs/{}.log'.format('_'.join(args.ProjectIDs)), 'w')
-    else:
-        f = open('Analysis.log', 'w')
+
+    f = open('Analysis.log', 'w')
 
     for projectID in args.ProjectIDs:
         if args.Computer == 'SRG':
@@ -252,10 +251,10 @@ if args.command == 'TotalProjectAnalysis':
             clusterProcess = r6_shell.run(['qsub', 'ClusterAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
             job_ids = {'depth': str(depthProcess.output), 'cluster': str(clusterProcess.output)}
             clusterProcessWrapup = r6_shell.run(
-                ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['cluster']), 'PostClusterAnalysis.pbs'], cwd=pbs_dir,
+                ['sh', '-c', 'qsub -W depend=afterok:{} PostClusterAnalysis.pbs'.format(job_ids['cluster'])], cwd=pbs_dir,
                 encoding='utf-8')
             classifierProcess = r7_shell.run(
-                ['qsub', '-W', 'depend=afterok:{}'.format(str(clusterProcessWrapup.output)), 'MLClusterClassifier.pbs'],
+                ['sh', '-c', 'qsub -W depend=afterok:{} MLClusterClassifier.pbs'.format(str(clusterProcessWrapup.output))],
                 cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'classifier': str(classifierProcess.output)})
             figureProcess = r6_shell.run(
