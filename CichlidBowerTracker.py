@@ -139,6 +139,10 @@ elif args.command == 'ProjectAnalysis':
 
 if args.command == 'TotalProjectAnalysis':
 
+    ap_obj = AP()
+    if ap_obj.checkProjects(args.ProjectIDs):
+        sys.exit()
+
     if args.Computer == 'PACE':
         import spur, getpass, time
         uname = input('Username: ')
@@ -149,11 +153,12 @@ if args.command == 'TotalProjectAnalysis':
         pacePrepCommands = ('conda activate CichlidBowerTracker; '
                             'python3 CichlidBowerTracker.py PacePrep -p {0}{1}'.format(pids, email))
         local_shell.run(['sh', '-c', pacePrepCommands])
-
-    ap_obj = AP()
-    if ap_obj.checkProjects(args.ProjectIDs):
-        sys.exit()
-    f = open('Analysis.log', 'w')
+        datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
+        r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
+        r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
+        f = r6_shell.open('data/CichlidBowerTracker/AnalysisLogs/{}.log'.format('_'.join(args.ProjectIds)), 'w')
+    else:
+        f = open('Analysis.log', 'w')
 
     for projectID in args.ProjectIDs:
         if args.Computer == 'SRG':
@@ -229,16 +234,11 @@ if args.command == 'TotalProjectAnalysis':
                 stdout=subprocess.PIPE, encoding='utf-8')
 
         elif args.Computer == 'PACE':
-
             pbs_dir = 'scratch/' + projectID + '/PBS'
             code_dir = 'data/CichlidBowerTracker/'
 
             print(time.asctime() + ' -- Analyzing projectID: ' + projectID, file=f)
             print(time.asctime() + ' -- Analyzing projectID: ' + projectID)
-
-            datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
-            r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
-            r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
 
             print(time.asctime() + ' -- Downloading data to Pace', file=f)
             print(time.asctime() + ' -- Downloading data to Pace')
