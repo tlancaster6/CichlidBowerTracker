@@ -28,7 +28,8 @@ pacePrepParser.add_argument('-t', '--TempDir', type=str,
                             help='Optional. Manually designate the temp directory. Enter LSS to use local scratch storage on PACE',
                             default=None)
 pacePrepParser.add_argument('-m', '--Email', type=str,
-                            help='Optional. Enter an email that will receive updates during PACE analysis')
+                            help='Optional. Enter an email that will receive updates during PACE analysis',
+                            default=None)
 pacePrepParser.add_argument('-w', '--Workers', type=int,
                             help='Use if you want to control the max number of workers used for an individual job',
                             default=64)
@@ -51,7 +52,8 @@ projectParser.add_argument('-t', '--TempDir', type=str,
                            help='Optional. Manually designate the temp directory. Enter LSS to use local scratch storage on PACE',
                            default=None)
 projectParser.add_argument('-m', '--Email', type=str,
-                           help='Optional. Enter an email that will receive updates during PACE analysis')
+                           help='Optional. Enter an email that will receive updates during PACE analysis',
+                           default=None)
 
 totalProjectsParser = subparsers.add_parser('TotalProjectAnalysis',
                                             help='This command runs the entire pipeline on list of projectIDs')
@@ -59,6 +61,9 @@ totalProjectsParser.add_argument('Computer', type=str, choices=['NURF', 'SRG', '
                                  help='What computer are you running this analysis from?')
 totalProjectsParser.add_argument('-p', '--ProjectIDs', nargs='+', required=True, type=str,
                                  help='Manually identify the projects you want to analyze. If All is specified, all non-prepped projects will be analyzed')
+totalProjectsParser.add_argument('-m', '--Email', type=str,
+                                 help='Optional. Enter an email that will receive updates during PACE analysis',
+                                 default=None)
 
 args = parser.parse_args()
 
@@ -133,15 +138,23 @@ elif args.command == 'ProjectAnalysis':
         pp_obj.parseOutfiles()
 
 if args.command == 'TotalProjectAnalysis':
+
     if args.Computer == 'PACE':
         import spur, getpass, time
+        uname = input('Username: ')
+        pword = getpass.getpass()
+        local_shell = spur.LocalShell()
+        pids = ' '.join(args.ProjectIDs)
+        email = '' if args.Email is None else ' -m ' + args.Email
+        pacePrepCommands = ('conda activate CichlidBowerTracker; '
+                            'python3 CichlidBowerTracker.py PacePrep -p {0}{1}'.format(pids, email))
+        local_shell.run('sh', '-c', pacePrepCommands)
+
     ap_obj = AP()
     if ap_obj.checkProjects(args.ProjectIDs):
         sys.exit()
     f = open('Analysis.log', 'w')
-    if args.Computer == 'PACE':
-        uname = input('Username: ')
-        pword = getpass.getpass()
+
     for projectID in args.ProjectIDs:
         if args.Computer == 'SRG':
             print('Analyzing projectID: ' + projectID, file=f)
@@ -262,13 +275,13 @@ if args.command == 'TotalProjectAnalysis':
                 print('   ' + job + ':' + job_id, file=f)
                 print('   ' + job + ':' + job_id)
 
-            time.sleep(6000)
+            time.sleep(600)
 
             print(time.asctime() + ' -- Backing up analysis to Dropbox')
             backupCommand = ('module load anaconda3; '
                              'conda activate CichlidBowerTracker; '
                              'python3 CichlidBowerTracker.py ProjectAnalysis Backup {}'.format(projectID))
-            backupProcess = datamover_shell.run(['sh', '-c', backupCommand], stderr=subprocess.PIPE,
+            backupProcess = datamover_shell.spawn(['sh', '-c', backupCommand], stderr=subprocess.PIPE,
                                                 stdout=subprocess.PIPE, encoding='utf-8')
 
             print(time.asctime() + ' -- Analysis complete for ' + projectID + '\n\n')

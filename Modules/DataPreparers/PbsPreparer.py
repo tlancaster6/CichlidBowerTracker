@@ -18,6 +18,7 @@ class PbsPreparer:
         self.uploads = [(self.projFileManager.localPbsDir, self.projFileManager.cloudPbsDir, '0')]
 
     def createPBS(self):
+
         # Generate Depth Analysis PBS
         d = {'PROJECT_ID': self.projFileManager.projectID, 'EMAIL': self.email}
         infile = open(os.path.join(os.getcwd(), 'Modules', 'PbsTemplates', 'DepthAnalysis.pbs'), 'r')
