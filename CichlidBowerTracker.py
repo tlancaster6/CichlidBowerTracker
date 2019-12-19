@@ -156,7 +156,7 @@ if args.command == 'TotalProjectAnalysis':
         datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
         r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
         r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
-        f = r6_shell.open('data/CichlidBowerTracker/AnalysisLogs/{}.log'.format('_'.join(args.ProjectIds)), 'w')
+        f = r6_shell.open('data/CichlidBowerTracker/AnalysisLogs/{}.log'.format('_'.join(args.ProjectIDs)), 'w')
     else:
         f = open('Analysis.log', 'w')
 
