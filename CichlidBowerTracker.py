@@ -1,4 +1,3 @@
-from __future__ import print_function
 import argparse, sys, subprocess
 from Modules.DataPreparers.AnalysisPreparer import AnalysisPreparer as AP
 from Modules.DataPreparers.ProjectPreparer import ProjectPreparer as PP

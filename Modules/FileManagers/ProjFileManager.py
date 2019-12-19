@@ -1,4 +1,4 @@
-import os, subprocess, pdb
+import os, subprocess, pdb, glob
 
 
 class ProjFileManager:
@@ -27,7 +27,7 @@ class ProjFileManager:
 			self._createDirectory(self.localManualLabelFramesDir)
 			self._createDirectory(self.localManualLabelFramesDir[:-1] + '_pngs')
 			self._createDirectory(self.localPbsDir)
-
+			self._untar_all(self.localMasterDir)
 
 		elif dtype == 'Prep':
 			self._createDirectory(self.localMasterDir)
@@ -253,6 +253,19 @@ class ProjFileManager:
 			output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + directory, self.localMasterDir + directory, '--exclude', '*.mp4'], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 			if not os.path.exists(self.localMasterDir + directory):
 				raise FileNotFoundError('Unable to download ' + directory + ' from ' + self.cloudMasterDir)
+
+	def _untar_all(self, parent_directory):
+		if len(glob.glob(parent_directory + '*.tar')) != 0:
+			for tar in glob.glob(parent_directory + '*.tar'):
+				print('untarring {}'.format(tar))
+				output = subprocess.run(['tar', '-xvf', tar, '-C', parent_directory], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+				if not os.path.exists(tar[:-4]):
+					raise FileNotFoundError('Unable to untar ' + tar)
+				else:
+					subprocess.run(['rm', '-f', tar])
+		else:
+			print('No tar files in {}'.format(parent_directory))
+
 
 	def _uploadDirectory(self, directory, tar = False):
 		if tar:
