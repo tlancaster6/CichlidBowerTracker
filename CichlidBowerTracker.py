@@ -245,29 +245,26 @@ if args.command == 'TotalProjectAnalysis':
             downloadCommand = ('module load anaconda3; '
                                'conda activate CichlidBowerTracker; '
                                'python3 CichlidBowerTracker.py ProjectAnalysis Download {}'.format(projectID))
-            downloadProcess = datamover_shell.run(['sh', '-c', downloadCommand], cwd=code_dir, stderr=subprocess.PIPE,
-                                                  stdout=subprocess.PIPE, encoding='utf-8')
+            downloadProcess = datamover_shell.run(['sh', '-c', downloadCommand], cwd=code_dir, encoding='utf-8')
             print(time.asctime() + ' -- Submitting pbs scripts', file=f)
             print(time.asctime() + ' -- Submitting pbs scripts')
-            depthProcess = r6_shell.run(['qsub', 'DepthAnalysis.pbs'], cwd=pbs_dir, stderr=subprocess.PIPE,
-                                        stdout=subprocess.PIPE, encoding='utf-8')
-            clusterProcess = r6_shell.run(['qsub', 'ClusterAnalysis.pbs'], cwd=pbs_dir, stderr=subprocess.PIPE,
-                                          stdout=subprocess.PIPE, encoding='utf-8')
+            depthProcess = r6_shell.run(['qsub', 'DepthAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
+            clusterProcess = r6_shell.run(['qsub', 'ClusterAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
             job_ids = {'depth': str(depthProcess.output), 'cluster': str(clusterProcess.output)}
             clusterProcessWrapup = r6_shell.run(
                 ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['cluster']), 'PostClusterAnalysis.pbs'], cwd=pbs_dir,
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
+                encoding='utf-8')
             classifierProcess = r7_shell.run(
                 ['qsub', '-W', 'depend=afterok:{}'.format(str(clusterProcessWrapup.output)), 'MLClusterClassifier.pbs'],
-                cwd=pbs_dir, stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
+                cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'classifier': str(classifierProcess.output)})
             figureProcess = r6_shell.run(
                 ['qsub', '-W', 'depend=afterok:{0}:{1}'.format(job_ids['cluster'], job_ids['classifier']),
-                 'FigurePreparer.pbs'], cwd=pbs_dir, stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
+                 'FigurePreparer.pbs'], cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'figures': str(figureProcess.output)})
             outfileProcess = r6_shell.run(
                 ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs'], cwd=pbs_dir,
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
+                encoding='utf-8')
 
             print(time.asctime() + ' -- All jobs submitted. Job IDs: ', file=f)
             print(time.asctime() + ' -- All jobs submitted. Job IDs: ')
@@ -281,8 +278,7 @@ if args.command == 'TotalProjectAnalysis':
             backupCommand = ('module load anaconda3; '
                              'conda activate CichlidBowerTracker; '
                              'python3 CichlidBowerTracker.py ProjectAnalysis Backup {}'.format(projectID))
-            backupProcess = datamover_shell.spawn(['sh', '-c', backupCommand], stderr=subprocess.PIPE,
-                                                stdout=subprocess.PIPE, encoding='utf-8')
+            backupProcess = datamover_shell.spawn(['sh', '-c', backupCommand], encoding='utf-8')
 
             print(time.asctime() + ' -- Analysis complete for ' + projectID + '\n\n')
 
