@@ -17,7 +17,7 @@ class ProjFileManager:
 
 		if dtype == 'Download':
 			for d in ['Prep', 'PacePrep', 'Depth', 'Cluster', 'MLClassification', 'Figures', 'ObjectLabeler']:
-				self._downloadDirectory(d)
+				self.downloadData(d)
 
 		elif dtype == 'Prep':
 			self._createDirectory(self.localMasterDir)
