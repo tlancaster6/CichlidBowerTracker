@@ -58,6 +58,8 @@ class MLClusterPreparer:
 				os.makedirs(outDirectory) 
 
 				outdata = subprocess.run(['ffmpeg', '-i', self.projFileManager.localAllClipsDir + clip, outDirectory + 'image_%05d.jpg'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+				print(outdata.stdout)
+				print(outdata.stderr)
 				#print(['ffmpeg', '-i', self.projFileManager.localAllClipsDir + clip, outDirectory + 'image_%05d.jpg'])
 
 				frames = [x for x in os.listdir(outDirectory) if '.jpg' in x]
@@ -133,6 +135,7 @@ class MLClusterPreparer:
 		[outCommand.extend([str(a),str(b)]) for a,b in zip(command.keys(), command.values())] + ['--no_train']
 		
 		outdata = subprocess.run(outCommand, env = trainEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+		print(outdata.stdout)
 		print(outdata.stderr)
 
 		dt = pd.read_csv(self.projFileManager.localMasterDir + '/prediction/ConfidenceMatrix.csv', header = None, names = ['Filename'] + self.videoClasses, skiprows = [0], index_col = 0)
