@@ -148,7 +148,7 @@ if args.command == 'TotalProjectAnalysis':
         email = '' if args.Email is None else ' -m ' + args.Email
         pacePrepCommands = ('conda activate CichlidBowerTracker; '
                             'python3 CichlidBowerTracker.py PacePrep -p {0}{1}'.format(pids, email))
-        local_shell.run('sh', '-c', pacePrepCommands)
+        local_shell.run(['sh', '-c', pacePrepCommands])
 
     ap_obj = AP()
     if ap_obj.checkProjects(args.ProjectIDs):
