@@ -29,7 +29,10 @@ class ProjFileManager:
 
 		elif dtype == 'PacePrep':
 			self._createDirectory(self.localMasterDir)
-			self._createDirectory(self.localPbsDir)
+			try:
+				self._downloadDirectory(self.pbsDir)
+			except FileNotFoundError:
+				self._createDirectory(self.localPbsDir)
 			self._downloadFile(self.logfile)
 
 		elif dtype == 'Depth':

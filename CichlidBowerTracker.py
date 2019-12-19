@@ -151,7 +151,7 @@ if args.command == 'TotalProjectAnalysis':
         pids = ' '.join(args.ProjectIDs)
         email = '' if args.Email is None else ' -m ' + args.Email
         pacePrepCommands = ('conda activate CichlidBowerTracker; '
-                            'python3 CichlidBowerTracker.py PacePrep -p {0}{1}'.format(pids, email))
+                            'python3 CichlidBowerTracker.py PacePrep -t LSS -p {0}{1}'.format(pids, email))
         local_shell.run(['sh', '-c', pacePrepCommands])
         datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
         r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
