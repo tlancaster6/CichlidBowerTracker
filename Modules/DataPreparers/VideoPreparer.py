@@ -81,14 +81,12 @@ class VideoPreparer:
 		command = ['ffmpeg', '-r', str(self.videoObj.framerate), '-i', h264_video, '-c:v', 'copy', '-r', str(self.videoObj.framerate), mp4_video]
 		print('  VideoConversion: ' + ' '.join(command) + ',Time' + str(datetime.datetime.now()))
 		output = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		print(output.stdout)
-		print(output.stderr)
 		assert os.path.isfile(mp4_video)
 
 		# Ensure the conversion went ok.
 		try:
 			assert os.stat(mp4_video).st_size >= os.stat(h264_video).st_size
-		except AssertionError as e:
+		except AssertionError:
 			print('Bad Conversion')
 			sys.exit()
 
