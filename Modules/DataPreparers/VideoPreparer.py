@@ -89,7 +89,7 @@ class VideoPreparer:
 		try:
 			assert os.stat(mp4_video).st_size >= os.stat(h264_video).st_size
 		except AssertionError as e:
-			print(e)
+			print('Bad Conversion')
 			sys.exit()
 
 		subprocess.run(['rm', '-f', h264_video])
