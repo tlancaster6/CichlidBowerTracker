@@ -377,4 +377,4 @@ if not args.Practice:
 					raise Exception
 		anFileManager.backupBoxedProject(args.ProjectID)
 
-#subprocess.run(['rm', '-rf', projFileManager.localMasterDir], stderr = subprocess.PIPE)
+subprocess.run(['rm', '-rf', projFileManager.localMasterDir], stderr = subprocess.PIPE)
