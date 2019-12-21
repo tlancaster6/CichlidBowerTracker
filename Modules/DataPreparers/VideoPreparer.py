@@ -78,7 +78,7 @@ class VideoPreparer:
 		h264_video = mp4_video.replace('.mp4', '.h264')
 		assert os.path.isfile(h264_video)
 
-		command = ['ffmpeg', '-r', str(self.videoObj.framerate), '-i', h264_video, '-c:v', 'copy', '-r', str(self.videoObj.framerate), mp4_video]
+		command = ['ffmpeg', '-r', str(self.videoObj.framerate), '-i', h264_video, '-c:v', 'copy', '-r', str(self.videoObj.framerate), mp4_video, '-loglevel', 'debug']
 		print('  VideoConversion: ' + ' '.join(command) + ',Time' + str(datetime.datetime.now()))
 		output = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		with open('debugging_log.txt') as f:
