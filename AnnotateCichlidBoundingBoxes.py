@@ -366,13 +366,15 @@ if not args.Practice:
 		anFileManager.downloadBoxedProject(args.ProjectID)
 		old_DT = pd.read_csv(anFileManager.localBoxesAnnotationFile)
 		backup_DT = old_DT.append(new_DT, sort=True).drop_duplicates()
-		backup_DT.to_csv(projFileManager.localLabeledFramesFile, sep = ',', columns = ['Framefile', 'Nfish', 'Sex', 'Box', 'User', 'DateTime'])
+		backup_DT.to_csv(anFileManager.localBoxesAnnotationFile, sep = ',', columns = ['Framefile', 'Nfish', 'Sex', 'Box', 'User', 'DateTime'])
 		
 		# Add videos
 		for row in old_DT.itertuples():
 			if not os.path.exists(anFileManager.localBoxedImagesProjDir + row.Framefile):
-				subprocess.run(['cp', projFileManager.localManualLabelFramesDir + row.Framefile, anFileManager.localBoxedImagesProjDir])
-
+				output = subprocess.run(['cp', projFileManager.localManualLabelFramesDir + row.Framefile, anFileManager.localBoxedImagesProjDir], stderr = subprocess.PIPE, encoding = 'utf-8')
+				if output.stderr != '':
+					print(output.stderr)
+					raise Exception
 		anFileManager.backupBoxedProject(args.ProjectID)
 
-subprocess.run(['rm', '-rf', projFileManager.localMasterDir], stderr = subprocess.PIPE)
+#subprocess.run(['rm', '-rf', projFileManager.localMasterDir], stderr = subprocess.PIPE)
