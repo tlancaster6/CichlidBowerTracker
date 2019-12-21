@@ -81,7 +81,7 @@ class VideoPreparer:
 		command = ['ffmpeg', '-r', str(self.videoObj.framerate), '-i', h264_video, '-c:v', 'copy', '-r', str(self.videoObj.framerate), mp4_video, '-y']
 		print('  VideoConversion: ' + ' '.join(command) + ',Time' + str(datetime.datetime.now()))
 		# f = open('remoteRemuxing.out', 'w')
-		output = subprocess.run(' '.join(command), shell=True, stdin=DEVNULL, stdout=DEVNULL, stderr=DEVNULL)
+		output = subprocess.run(command)
 		# f.close()
 
 		assert os.path.isfile(mp4_video)
