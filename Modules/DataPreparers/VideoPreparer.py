@@ -6,7 +6,6 @@ from sklearn.neighbors import NearestNeighbors
 import numpy as np
 import pandas as pd
 import os, cv2, math, datetime, subprocess, pdb, random, sys
-from subprocess import DEVNULL
 
 class VideoPreparer:
 	# This class takes in directory information and a logfile containing depth information and performs the following:
@@ -80,9 +79,7 @@ class VideoPreparer:
 		assert os.path.isfile(h264_video)
 		command = ['ffmpeg', '-r', str(self.videoObj.framerate), '-i', h264_video, '-c:v', 'copy', '-r', str(self.videoObj.framerate), mp4_video, '-y']
 		print('  VideoConversion: ' + ' '.join(command) + ',Time' + str(datetime.datetime.now()))
-		# f = open('remoteRemuxing.out', 'w')
 		output = subprocess.run(command)
-		# f.close()
 
 		assert os.path.isfile(mp4_video)
 
