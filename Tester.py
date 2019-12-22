@@ -4,7 +4,7 @@ import subprocess, os, sys, datetime
 class Tester:
 
     def __init__(self):
-        self.mp4_video = os.getenv('HOME') + '/scratch/TI2_5_newtray/0001_vid.mp4'
+        self.mp4_video = os.getenv('HOME') + '/scratch/TI2_5_newtray/Videos/0001_vid.mp4'
 
     def _convertVideo(self):
         h264_video = self.mp4_video.replace('.mp4', '.h264')
