@@ -22,3 +22,5 @@ class Tester:
             print('Bad Conversion')
             sys.exit()
 
+
+test = Tester()
