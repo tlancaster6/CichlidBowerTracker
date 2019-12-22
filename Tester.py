@@ -23,4 +23,4 @@ class Tester:
             sys.exit()
 
 
-test = Tester()
+Tester()._convertVideo()
