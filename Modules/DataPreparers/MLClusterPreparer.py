@@ -57,7 +57,7 @@ class MLClusterPreparer:
 				shutil.rmtree(outDirectory) if os.path.exists(outDirectory) else None
 				os.makedirs(outDirectory) 
 
-				outdata = subprocess.run(['ffmpeg', '-i', self.projFileManager.localAllClipsDir + clip, outDirectory + 'image_%05d.jpg'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+				outdata = subprocess.run(['ffmpeg', '-i', self.projFileManager.localAllClipsDir + clip, outDirectory + 'image_%05d.jpg', '-nostdin'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 				print(outdata.stdout)
 				print(outdata.stderr)
 				#print(['ffmpeg', '-i', self.projFileManager.localAllClipsDir + clip, outDirectory + 'image_%05d.jpg'])
@@ -65,18 +65,19 @@ class MLClusterPreparer:
 				frames = [x for x in os.listdir(outDirectory) if '.jpg' in x]
 				try:
 					if self.nFrames != len(frames):
-						raise Exception('Different number of frames than expected in: ' + clip)
+						print('Different number of frames than expected in {0}. Expected "{1}, found {2}'.format(clip, self.nFrames, len(frames)))
 				except AttributeError:
 					self.nFrames = len(frames)
 
 				with open(outDirectory + 'n_frames', 'w') as i:
 					print(str(self.nFrames), file = i)
 
-				img = io.imread(outDirectory + frames[0])
-				mean = img.mean(axis = (0,1))
-				std = img.std(axis = (0,1))
-				print(clip.replace('.mp4', '') + ',' + ','.join([str(x) for x in mean]) + ',' + ','.join([str(x) for x in std]), file = f)
-				print(label + '/' + clip.replace('.mp4',''), file = g)
+				if len(frames) != 0:
+					img = io.imread(outDirectory + frames[0])
+					mean = img.mean(axis = (0,1))
+					std = img.std(axis = (0,1))
+					print(clip.replace('.mp4', '') + ',' + ','.join([str(x) for x in mean]) + ',' + ','.join([str(x) for x in std]), file = f)
+					print(label + '/' + clip.replace('.mp4',''), file = g)
 
 		subprocess.run(['touch', self.projFileManager.localMasterDir + 'cichlids_train_list.txt'])
 
