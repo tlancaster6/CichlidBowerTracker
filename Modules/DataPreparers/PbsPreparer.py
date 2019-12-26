@@ -77,7 +77,7 @@ class PbsPreparer:
         infile.close()
         if self.email is None:
             mod = mod.replace('#PBS -M None\n#PBS -m abe\n', '')
-        outfile = open(self.projFileManager.localPbsDir + 'MLClusterClassifier.pbs', 'w')
+        outfile = open(self.projFileManager.localPbsDir + 'FigurePreparer.pbs', 'w')
         outfile.write(mod)
         outfile.close()
 
