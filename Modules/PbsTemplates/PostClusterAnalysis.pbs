@@ -1,6 +1,6 @@
 #PBS -N ${PROJECT_ID}_PostClusterAnalysis
 #PBS -l nodes=1:ppn=1
-#PBS -l features=intel
+#PBS -l feature=intel
 #PBS -l walltime=30:00
 #PBS -l pmem=2gb
 #PBS -q iw-shared-6
@@ -12,5 +12,5 @@
 cd ~/data/CichlidBowerTracker
 echo "Started on `/bin/hostname`"
 module load anaconda3
-conda activate CichlidBowerTracker
+source activate CichlidBowerTracker
 python3 CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w 1 -v -1
