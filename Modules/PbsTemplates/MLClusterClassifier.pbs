@@ -12,4 +12,4 @@ echo "Started on `/bin/hostname`"
 module load git-lfs
 module load anaconda3
 source activate CichlidBowerTracker
-python3 CichlidBowerTracker.py ProjectAnalysis MLClassification ${PROJECT_ID} -w 8
+python3 CichlidBowerTracker.py ProjectAnalysis MLClassification ${PROJECT_ID} -w 8 -t ${TMPDIR}
