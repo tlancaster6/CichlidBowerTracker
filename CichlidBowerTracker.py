@@ -277,7 +277,7 @@ if args.command == 'TotalProjectAnalysis':
             backupCommand = ('module load anaconda3; '
                              'conda activate CichlidBowerTracker; '
                              'python3 CichlidBowerTracker.py ProjectAnalysis Backup {}'.format(projectID))
-            backupProcess = datamover_shell.spawn(['sh', '-c', backupCommand], encoding='utf-8')
+            backupProcess = datamover_shell.run(['sh', '-c', backupCommand], encoding='utf-8')
 
             print(time.asctime() + ' -- Analysis complete for ' + projectID + '\n\n')
 
