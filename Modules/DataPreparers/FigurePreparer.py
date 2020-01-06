@@ -301,4 +301,4 @@ class FigurePreparer:
 	def _createAllFigures(self, hourlyDelta=2):
 		self._createCombinedFigures()
 		self._createClusterFigures()
-		self._createDepthFigures()
+		self._createDepthFigures(hourlyDelta=hourlyDelta)
