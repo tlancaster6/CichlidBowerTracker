@@ -56,7 +56,7 @@ class MLClusterPreparer:
 				shutil.rmtree(outDirectory) if os.path.exists(outDirectory) else None
 				os.makedirs(outDirectory) 
 
-				outdata = subprocess.run(['ffmpeg', '-i', self.projFileManager.localAllClipsDir + clip, outDirectory + 'image_%05d.jpg', '-nostdin', '-hide_banner'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+				outdata = subprocess.run(['ffmpeg', '-i', self.projFileManager.localAllClipsDir + clip, outDirectory + 'image_%05d.jpg', '-nostdin', '-loglevel', 'error'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 				print(outdata.stdout)
 				print(outdata.stderr)
 				#print(['ffmpeg', '-i', self.projFileManager.localAllClipsDir + clip, outDirectory + 'image_%05d.jpg'])
