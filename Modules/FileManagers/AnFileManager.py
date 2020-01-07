@@ -52,15 +52,16 @@ class AnFileManager():
 		subprocess.run(['rclone', 'copy', self.cloudBoxesAnnotationFile, self.localBoxedFishesDir])
 		subprocess.run(['rclone', 'copy', self.cloudBoxedImagesDir + projectID + '.tar', self.localBoxedImagesDir])
 		if os.path.exists(self.localBoxedImagesDir + projectID + '.tar'):
-			output = subprocess.run(['tar', '-xvf', self.localBoxedImagesDir + projectID + '.tar', '-C', self.localBoxedImagesDir], stderr = subprocess.PIPE)
+			output = subprocess.run(['tar', '-xvf', self.localBoxedImagesDir + projectID + '.tar', '-C', self.localBoxedImagesDir], stderr = subprocess.PIPE, encoding = 'utf-8')
+			print(output.stderr)
 			print(['tar', '-xvf', self.localBoxedImagesDir + projectID + '.tar', '-C', self.localBoxedImagesDir])
 		else:
 			self._createDirectory(self.localBoxedImagesProjDir)
-		subprocess.run(['rm', '-rf', self.localBoxedImagesDir + projectID + '.tar'], stderr = subprocess.PIPE)
+		#subprocess.run(['rm', '-rf', self.localBoxedImagesDir + projectID + '.tar'], stderr = subprocess.PIPE)
 
 	def backupBoxedProject(self, projectID):
 		subprocess.run(['rclone', 'copy', self.localBoxesAnnotationFile, self.cloudBoxedFishesDir])
-		subprocess.run(['tar', '-cvf', self.localBoxedImagesDir + projectID + '.tar', '-C', self.localBoxedImagesDir, self.localBoxedImagesDir + projectID], stderr = subprocess.PIPE)
+		subprocess.run(['tar', '-cvf', self.localBoxedImagesDir + projectID + '.tar', '-C', self.localBoxedImagesDir, projectID], stderr = subprocess.PIPE)
 		subprocess.run(['rclone', 'copy', self.localBoxedImagesDir + projectID + '.tar', self.cloudBoxedImagesDir])
 		#subprocess.run(['rm', '-rf', self.localMasterDir], stderr = subprocess.PIPE)
 
