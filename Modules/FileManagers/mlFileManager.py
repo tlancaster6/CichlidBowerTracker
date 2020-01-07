@@ -40,7 +40,8 @@ class MLFileManager():
 		self.cloudVideoModelsDir = self.cloudMasterDir + self.videoModelsDir
 		self.localVideoModelsDir = self.localMasterDir + self.videoModelsDir
 
-		self.videoMLGithub = 'https://www.github.com/ptmcgrat/3D-Resnets'
+		# self.videoMLGithub = 'https://www.github.com/ptmcgrat/3D-Resnets'
+		self.videoMLGithub = 'https://www.github.com/tlancaster6/3D-Resnets'
 
 		self.localVideoModelFile = self.localVideoModelsDir + self.vModelID + '/model.pth'
 		self.localVideoClassesFile = self.localVideoModelsDir + self.vModelID + '/classInd.txt'

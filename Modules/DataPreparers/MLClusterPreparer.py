@@ -26,8 +26,7 @@ class MLClusterPreparer:
 		assert os.path.exists(self.mlFileManager.localVideoPythonMainFile)
 		assert os.path.exists(self.mlFileManager.localVideoPythonJsonFile)
 		
-		self.uploads = [(self.projFileManager.localAnalysisDir, self.projFileManager.cloudAnalysisDir, 0)
-						]
+		self.uploads = [(self.projFileManager.localAnalysisDir, self.projFileManager.cloudAnalysisDir, 0)]
 
 	def predictVideoLabels(self):
 		self._identifyVideoClasses()
@@ -111,8 +110,9 @@ class MLClusterPreparer:
 
 		# Load command file
 		with open(self.mlFileManager.localVideoCommandsFile, 'rb') as pickle_file:
-			command = pickle.load(pickle_file) 
-		
+			command = pickle.load(pickle_file)
+
+		command['python'] = self.mlFileManager.localVideoPythonMainFile
 		command['--root_path'] = self.projFileManager.localMasterDir
 		command['--n_epochs'] = '1'
 		command['--pretrain_path'] = self.mlFileManager.localVideoModelFile
@@ -120,14 +120,14 @@ class MLClusterPreparer:
 		command['--annotation_file'] = self.projFileManager.localMasterDir + 'AnnotationFile.csv'
 		command['--annotation_path'] = 'cichlids.json'
 		command['--batch_size'] = str(int(int(command['--batch_size'])*2))
-		command['--video_path'] = ''
+		command['--video_path'] = self.projFileManager.localTempDir
 
 		resultsDirectory = 'prediction/'
 		shutil.rmtree(self.projFileManager.localMasterDir + resultsDirectory) if os.path.exists(self.projFileManager.localMasterDir + resultsDirectory) else None
 		os.makedirs(self.projFileManager.localMasterDir + resultsDirectory)
 
 		trainEnv = os.environ.copy()
-		trainEnv['CUDA_VISIBLE_DEVICES'] = str(6)
+		trainEnv['CUDA_VISIBLE_DEVICES'] = str(0)
 		command['--result_path'] = resultsDirectory
 
 		#pickle.dump(command, open(self.localOutputDirectory + 'commands.pkl', 'wb'))
