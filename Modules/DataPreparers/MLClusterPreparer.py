@@ -140,7 +140,13 @@ class MLClusterPreparer:
 		print(outdata.stdout)
 		print(outdata.stderr)
 
-		dt = pd.read_csv(self.projFileManager.localMasterDir + 'prediction/ConfidenceMatrix.csv', header = None, names = ['Filename'] + self.videoClasses, skiprows = [0], index_col = 0)
+		try:
+			dt = pd.read_csv(self.projFileManager.localMasterDir + 'prediction/ConfidenceMatrix.csv', header = None, names = ['Filename'] + self.videoClasses, skiprows = [0], index_col = 0)
+		except FileNotFoundError:
+			print('Confidence Matrix file not found. backing up prepped clips as a tarfile')
+			subprocess.run(['tar', '-cvf', 'preppedClips.tar', '-C', self.projFileManager.localMasterDir, self.projFileManager.localTempDir])
+			raise FileNotFoundError
+
 		softmax = dt.apply(scipy.special.softmax, axis = 1)
 		prediction = pd.concat([softmax.idxmax(axis=1).rename(self.mlFileManager.vModelID + '_pred'), softmax.max(axis=1).rename(self.mlFileManager.vModelID + '_conf')], axis=1)
 		prediction['ClipName'] = prediction.apply(lambda row: row.name.split('/')[-1], axis = 1)
