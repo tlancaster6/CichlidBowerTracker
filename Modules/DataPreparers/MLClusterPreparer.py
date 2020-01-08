@@ -135,7 +135,7 @@ class MLClusterPreparer:
 		outCommand = []
 		[outCommand.extend([str(a),str(b)]) for a,b in zip(command.keys(), command.values())] + ['--no_train']
 		print(' '.join(outCommand))
-		outdata = subprocess.run(outCommand, env = trainEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+		outdata = subprocess.run(outCommand, env=trainEnv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		print(outdata.stdout)
 		print(outdata.stderr)
 
