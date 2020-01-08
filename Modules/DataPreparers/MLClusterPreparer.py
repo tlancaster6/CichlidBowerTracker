@@ -133,7 +133,8 @@ class MLClusterPreparer:
 		#pickle.dump(command, open(self.localOutputDirectory + 'commands.pkl', 'wb'))
 
 		outCommand = []
-		[outCommand.extend([str(a),str(b)]) for a,b in zip(command.keys(), command.values())] + ['--no_train']
+		[outCommand.extend([str(a),str(b)]) for a,b in zip(command.keys(), command.values())]
+		outCommand = outCommand + ['--no_train']
 		print(' '.join(outCommand))
 		outdata = subprocess.run(outCommand, env=trainEnv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		print(outdata.stdout)
