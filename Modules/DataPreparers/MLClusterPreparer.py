@@ -141,7 +141,8 @@ class MLClusterPreparer:
 		[outCommand.extend([str(a),str(b)]) for a,b in zip(command.keys(), command.values())]
 		outCommand = outCommand + ['--no_train']
 		print(' '.join(outCommand))
-		subprocess.run(outCommand, env=trainEnv)
+		with open(self.projFileManager.localTroubleshootingDir + 'command.out') as f:
+			subprocess.run(outCommand, env=trainEnv, stdout=f, stderr=subprocess.STDOUT)
 
 		dt = pd.read_csv(self.projFileManager.localMasterDir + 'prediction/ConfidenceMatrix.csv', header = None, names = ['Filename'] + self.videoClasses, skiprows = [0], index_col = 0)
 		softmax = dt.apply(scipy.special.softmax, axis = 1)
