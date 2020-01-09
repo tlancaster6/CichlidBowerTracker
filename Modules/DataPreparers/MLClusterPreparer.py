@@ -42,7 +42,7 @@ class MLClusterPreparer:
 
 	def _prepareClips(self):
 		print('untarring prepped clips')
-		subprocess.run(['tar', '-xvf', self.projFileManager.localMasterDir + 'preppedClips.tar', '-C',
+		subprocess.run(['tar', '-xf', self.projFileManager.localMasterDir + 'preppedClips.tar', '-C',
 						self.projFileManager.localTempDir])
 		print('untarring complete. Temp directory contents:')
 		print(os.listdir(self.projFileManager.localTempDir))
