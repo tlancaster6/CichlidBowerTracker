@@ -220,10 +220,10 @@ if args.command == 'TotalProjectAnalysis':
             print(time.asctime() + ' -- gathering necessary files', file=f)
             print(time.asctime() + ' -- gathering necessary files')
 
-            pbsDownloadCommand = ('module load anaconda3; '
-                                  'source activate CichlidBowerTracker;'
-                                  'python3 CichlidBowerTracker.py ProjectAnalysis PBS {}'.format(projectID))
-            datamover_shell.run(['sh', '-c', pbsDownloadCommand], cwd=code_dir, encoding='utf-8')
+            # pbsDownloadCommand = ('module load anaconda3; '
+            #                       'source activate CichlidBowerTracker;'
+            #                       'python3 CichlidBowerTracker.py ProjectAnalysis PBS {}'.format(projectID))
+            # datamover_shell.run(['sh', '-c', pbsDownloadCommand], cwd=code_dir, encoding='utf-8')
 
 
             print(time.asctime() + ' -- Submitting pbs scripts', file=f)
