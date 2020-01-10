@@ -240,9 +240,7 @@ if args.command == 'TotalProjectAnalysis':
                 downloadProcess = r6_shell.run(downloadCommand, cwd=pbs_dir, encoding='utf-8')
                 job_ids = {'download': str(downloadProcess.output)[:-1]}
 
-            print(job_ids)
             depthCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'DepthAnalysis.pbs']
-            print(depthCommand)
             depthProcess = r6_shell.run(depthCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'depth': str(depthProcess.output)[:-1]})
 
@@ -257,6 +255,7 @@ if args.command == 'TotalProjectAnalysis':
 
             classifierProcessCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['clusterWrapup']),
                                         'MLClusterClassifier.pbs']
+            print(classifierProcessCommand)
             classifierProcess = r7_shell.run(classifierProcessCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'classifier': str(classifierProcess.output)[:-1]})
 
