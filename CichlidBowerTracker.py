@@ -156,6 +156,7 @@ if args.command == 'TotalProjectAnalysis':
         datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
         r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
         r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
+        wait = False
 
     f = open('Analysis.log', 'w')
 
@@ -283,14 +284,6 @@ if args.command == 'TotalProjectAnalysis':
             for job, job_id in job_ids.items():
                 print('   ' + job + ':' + job_id, file=f)
                 print('   ' + job + ':' + job_id)
-
-            print(time.asctime() + ' -- Backing up analysis to Dropbox')
-            backupCommand = ('module load anaconda3; '
-                             'conda activate CichlidBowerTracker; '
-                             'python3 CichlidBowerTracker.py ProjectAnalysis Backup {}'.format(projectID))
-            backupProcess = datamover_shell.run(['sh', '-c', backupCommand], encoding='utf-8')
-
-            print(time.asctime() + ' -- Analysis complete for ' + projectID + '\n\n')
 
     f.close()
     summarizeProcess = subprocess.run(['python3', 'CichlidBowerTracker.py', 'UpdateAnalysisSummary'])
