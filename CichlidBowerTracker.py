@@ -246,24 +246,33 @@ if args.command == 'TotalProjectAnalysis':
                                'conda activate CichlidBowerTracker; '
                                'python3 CichlidBowerTracker.py ProjectAnalysis Download {}'.format(projectID))
             downloadProcess = datamover_shell.run(['sh', '-c', downloadCommand], cwd=code_dir, encoding='utf-8')
+
             print(time.asctime() + ' -- Submitting pbs scripts', file=f)
             print(time.asctime() + ' -- Submitting pbs scripts')
+
             depthProcess = r6_shell.run(['qsub', 'DepthAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
             clusterProcess = r6_shell.run(['qsub', 'ClusterAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
             job_ids = {'depth': str(depthProcess.output), 'cluster': str(clusterProcess.output)}
-            clusterProcessWrapup = r6_shell.run(
-                ['sh', '-c', 'qsub -W depend=afterok:{} PostClusterAnalysis.pbs'.format(job_ids['cluster'])], cwd=pbs_dir,
-                encoding='utf-8')
-            classifierProcess = r7_shell.run(
-                ['sh', '-c', 'qsub -W depend=afterok:{} MLClusterClassifier.pbs'.format(str(clusterProcessWrapup.output))],
-                cwd=pbs_dir, encoding='utf-8')
+
+            clusterProcessWrapupCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['cluster']),
+                                           'PostClusterAnalysis.pbs']
+            clusterProcessWrapup = r6_shell.run(clusterProcessWrapupCommand, cwd=pbs_dir, encoding='utf-8')
+            job_ids.update({'clusterWrapup': str(clusterProcessWrapup.output)})
+
+            classifierProcessCommand = ['qsub' '-W' 'depend=afterok:{}'.format(job_ids['clusterWrapup']),
+                                        'MLClusterClassifier.pbs']
+            classifierProcess = r7_shell.run(classifierProcessCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'classifier': str(classifierProcess.output)})
-            figureCommand = ['qsub', '-W', 'depend=afterok:{0}:{1}'.format(job_ids['cluster'], job_ids['classifier']),
-                 'FigurePreparer.pbs']
+
+            figureCommand = ['qsub', '-W',
+                             'depend=afterok:{0}:{1}'.format(job_ids['clusterWrapup'], job_ids['classifier']),
+                             'FigurePreparer.pbs']
             figureProcess = r6_shell.run(figureCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'figures': str(figureProcess.output)})
+
             outfileCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs']
             outfileProcess = r6_shell.run(outfileCommand, cwd=pbs_dir, encoding='utf-8')
+            job_ids.update({'oufile': str(outfileProcess.output)})
 
             print(time.asctime() + ' -- All jobs submitted. Job IDs: ', file=f)
             print(time.asctime() + ' -- All jobs submitted. Job IDs: ')
