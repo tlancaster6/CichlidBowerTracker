@@ -16,23 +16,15 @@ prepParser = subparsers.add_parser('ManualPrep',
 prepParser.add_argument('-p', '--ProjectIDs', nargs='+', required=True, type=str,
                         help='Manually identify the projects you want to analyze. If All is specified, all non-prepped projects will be analyzed')
 prepParser.add_argument('-w', '--Workers', type=int,
-                        help='Use if you want to control how many workers this analysis uses', default=1)
+                        help='Use if you want to control how many workers this analysis uses', default=14)
 prepParser.add_argument('-g', '--GPUs', type=int, help='Use if you want to control how many GPUs this analysis uses',
                         default=1)
-
-pacePrepParser = subparsers.add_parser('PacePrep',
-                                       help='This command generates the pbs scripts that will be necessary to run analysis of a project on PACE')
-pacePrepParser.add_argument('-p', '--ProjectIDs', nargs='+', required=True, type=str,
-                            help='Manually identify the projects you want to analyze')
-pacePrepParser.add_argument('-t', '--TempDir', type=str,
-                            help='Optional. Manually designate the temp directory. Default is LSS, the local scratch storage on PACE',
-                            default='LSS')
-pacePrepParser.add_argument('-m', '--Email', type=str,
+prepParser.add_argument('-t', '--TempDir', type=str,
+                        help='Optional. Manually designate the temp directory. Default is LSS, the local scratch storage on PACE',
+                        default='LSS')
+prepParser.add_argument('-m', '--Email', type=str,
                             help='Optional. Enter an email that will receive updates during PACE analysis',
                             default=None)
-pacePrepParser.add_argument('-w', '--Workers', type=int,
-                            help='Use if you want to control the max number of workers used for an individual job',
-                            default=14)
 
 projectParser = subparsers.add_parser('ProjectAnalysis',
                                       help='This command performs a single type of analysis of the project. It is meant to be chained together to perform the entire analysis')
@@ -82,20 +74,11 @@ elif args.command == 'ManualPrep':
         sys.exit()
 
     for projectID in args.ProjectIDs:
-        pp_obj = PP(projectID, args.Workers)
-        pp_obj.runPrepAnalysis()
-
-    # pp_obj.backupAnalysis()
-    ap_obj.updateAnalysisFile(newProjects=False, projectSummary=False)
-
-elif args.command == 'PacePrep':
-    ap_obj = AP()
-    if ap_obj.checkProjects(args.ProjectIDs):
-        sys.exit()
-
-    for projectID in args.ProjectIDs:
         pp_obj = PP(projectID, args.Workers, args.TempDir)
+        pp_obj.runPrepAnalysis()
         pp_obj.runPacePrep(args.Email)
+
+    ap_obj.updateAnalysisFile(newProjects=False, projectSummary=False)
 
 elif args.command == 'ProjectAnalysis':
 
