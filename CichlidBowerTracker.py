@@ -257,13 +257,12 @@ if args.command == 'TotalProjectAnalysis':
                 ['sh', '-c', 'qsub -W depend=afterok:{} MLClusterClassifier.pbs'.format(str(clusterProcessWrapup.output))],
                 cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'classifier': str(classifierProcess.output)})
-            figureProcess = r6_shell.run(
-                ['qsub', '-W', 'depend=afterok:{0}:{1}'.format(job_ids['cluster'], job_ids['classifier']),
-                 'FigurePreparer.pbs'], cwd=pbs_dir, encoding='utf-8')
+            figureCommand = ['qsub', '-W', 'depend=afterok:{0}:{1}'.format(job_ids['cluster'], job_ids['classifier']),
+                 'FigurePreparer.pbs']
+            figureProcess = r6_shell.run(figureCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'figures': str(figureProcess.output)})
-            outfileProcess = r6_shell.run(
-                ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs'], cwd=pbs_dir,
-                encoding='utf-8')
+            outfileCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs']
+            outfileProcess = r6_shell.run(outfileCommand, cwd=pbs_dir, encoding='utf-8')
 
             print(time.asctime() + ' -- All jobs submitted. Job IDs: ', file=f)
             print(time.asctime() + ' -- All jobs submitted. Job IDs: ')

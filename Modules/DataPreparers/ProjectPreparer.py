@@ -82,8 +82,9 @@ class ProjectPreparer():
 		pass
 
 	def runFiguresCreation(self):
-		fc_obj =FP(self.projFileManager)
+		fc_obj = FP(self.projFileManager)
 		fc_obj.validateInputData()
+		fc_obj.createAllFigures()
 
 		self.createUploadFile(fc_obj.uploads)
 		self.createAnalysisUpdate('Figures', fc_obj)

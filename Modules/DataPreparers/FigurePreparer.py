@@ -298,7 +298,7 @@ class FigurePreparer:
 		fig.savefig(self.projFileManager.localFiguresDir + 'BowerIdentificationConsistency.pdf')
 		plt.close(fig=fig)
 
-	def _createAllFigures(self, hourlyDelta=2):
+	def createAllFigures(self, hourlyDelta=2):
 		self._createCombinedFigures()
 		self._createClusterFigures()
 		self._createDepthFigures(hourlyDelta=hourlyDelta)
