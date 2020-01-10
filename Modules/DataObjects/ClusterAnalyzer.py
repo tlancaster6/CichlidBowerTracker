@@ -78,12 +78,14 @@ class ClusterAnalyzer:
         x_bins = int(self.tray_r[3] - self.tray_r[1])
         y_bins = int(self.tray_r[2] - self.tray_r[0])
         yy, xx = np.mgrid[0:y_bins, 0:x_bins]
-        xy_sample = np.vstack([xx.ravel(), yy.ravel()]).T
-        xy_train = df_slice.to_numpy()
-
-        kde = KernelDensity(bandwidth=bandwidth, kernel='epanechnikov').fit(xy_train)
-        z = np.exp(kde.score_samples(xy_sample)).reshape(xx.shape)
-        z = (z * n_events) / (z.sum() * (self.projFileManager.pixelLength ** 2))
+        if n_events == 0:
+            z = np.zeros_like(xx)
+        else:
+            xy_sample = np.vstack([xx.ravel(), yy.ravel()]).T
+            xy_train = df_slice.to_numpy()
+            kde = KernelDensity(bandwidth=bandwidth, kernel='epanechnikov').fit(xy_train)
+            z = np.exp(kde.score_samples(xy_sample)).reshape(xx.shape)
+            z = (z * n_events) / (z.sum() * (self.projFileManager.pixelLength ** 2))
         return z
 
     def returnBowerLocations(self, t0, t1, denoise=False, cropped=False, bandwidth=10.0):
