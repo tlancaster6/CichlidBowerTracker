@@ -32,7 +32,10 @@ class OutfilePreparer:
                         match = rx.search(line)
                         if match:
                             if (key == 'requested') or (key == 'used'):
-                                row.update([tuple(item.split('=', 1)) for item in re.split(r',|(?=.):(?=\D)', match.group(key))])
+                                update = [tuple(item.split('=', 1))
+                                          for item in re.split(r',|(?=.):(?=\D)', match.group(key))]
+                                update = [x + tuple('Y') if (len(x) is 1) else x for x in update]
+                                row.update(update)
                             else:
                                 row.update({key: match.group(key)})
                             if 'outcome' not in row.keys():
