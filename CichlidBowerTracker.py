@@ -130,7 +130,6 @@ if args.command == 'TotalProjectAnalysis':
         import spur, getpass, time
         uname = input('Username: ')
         pword = getpass.getpass()
-        local_shell = spur.LocalShell()
         datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
         r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
         r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
@@ -233,45 +232,44 @@ if args.command == 'TotalProjectAnalysis':
             if wait:
                 downloadCommand = ['qsub', '-W', 'depend=after:{}'.format(job_ids['backup']), 'Download.pbs']
                 downloadProcess = r6_shell.run(downloadCommand, cwd=pbs_dir, encoding='utf-8')
-                job_ids.update({'download': str(downloadProcess.output).split('.')[0]})
+                job_ids.update({'download': str(downloadProcess.output)[:-2]})
 
             else:
                 wait = True
                 downloadCommand = ['qsub', 'Download.pbs']
                 downloadProcess = r6_shell.run(downloadCommand, cwd=pbs_dir, encoding='utf-8')
-                job_ids = {'download': str(downloadProcess.output).split('.')[0]}
+                job_ids = {'download': str(downloadProcess.output)[:-2]}
 
             depthCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'DepthAnalysis.pbs']
-            print(depthCommand)
             depthProcess = r6_shell.run(depthCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'depth': str(depthProcess.output).split('.')[0]})
+            job_ids.update({'depth': str(depthProcess.output)[:-2]})
 
             clusterCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'ClusterAnalysis.pbs']
             clusterProcess = r6_shell.run(clusterCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'cluster': str(clusterProcess.output).split('.')[0]})
+            job_ids.update({'cluster': str(clusterProcess.output)[:-2]})
 
             clusterProcessWrapupCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['cluster']),
                                            'PostClusterAnalysis.pbs']
             clusterProcessWrapup = r6_shell.run(clusterProcessWrapupCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'clusterWrapup': str(clusterProcessWrapup.output).split('.')[0]})
+            job_ids.update({'clusterWrapup': str(clusterProcessWrapup.output)[:-2]})
 
             classifierProcessCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['clusterWrapup']),
                                         'MLClusterClassifier.pbs']
             classifierProcess = r7_shell.run(classifierProcessCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'classifier': str(classifierProcess.output).split('.')[0]})
+            job_ids.update({'classifier': str(classifierProcess.output)[:-2]})
 
             figureCommand = ['qsub', '-W',
                              'depend=afterok:{}'.format(job_ids['classifier']), 'FigurePreparer.pbs']
             figureProcess = r6_shell.run(figureCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'figures': str(figureProcess.output).split('.')[0]})
+            job_ids.update({'figures': str(figureProcess.output)[:-2]})
 
             outfileCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs']
             outfileProcess = r6_shell.run(outfileCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'oufile': str(outfileProcess.output).split('.')[0]})
+            job_ids.update({'oufile': str(outfileProcess.output)[:-2]})
 
             backupCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['outfile']), 'Backup.pbs']
             backupProcess = r6_shell.run(backupCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'backup': str(backupProcess.output).split('.')[0]})
+            job_ids.update({'backup': str(backupProcess.output)[:-2]})
 
             print(time.asctime() + ' -- jobs submitted. Job IDs: ', file=f)
             print(time.asctime() + ' -- jobs submitted. Job IDs: ')
