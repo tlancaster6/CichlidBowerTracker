@@ -215,10 +215,11 @@ if args.command == 'TotalProjectAnalysis':
             pbs_dir = 'scratch/' + projectID + '/PBS'
             code_dir = 'data/CichlidBowerTracker'
 
+            print(time.asctime() + ' -- gathering necessary files')
             pbsDownloadCommand = ('module load anaconda3; '
                                   'source activate CichlidBowerTracker;'
                                   'python3 CichlidBowerTracker.py ProjectAnalysis PBS -p {}'.format(projectID))
-            datamover_shell.run(['sh', '-c', pbsDownloadCommand], cwd=code_dir)
+            datamover_shell.run(['sh', '-c', pbsDownloadCommand], cwd=code_dir, encoding='utf-8')
 
             print(time.asctime() + ' -- Analyzing projectID: ' + projectID, file=f)
             print(time.asctime() + ' -- Analyzing projectID: ' + projectID)
