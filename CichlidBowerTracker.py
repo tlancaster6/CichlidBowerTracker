@@ -280,8 +280,6 @@ if args.command == 'TotalProjectAnalysis':
                 print('   ' + job + ':' + job_id, file=f)
                 print('   ' + job + ':' + job_id)
 
-            time.sleep(600)
-
             print(time.asctime() + ' -- Backing up analysis to Dropbox')
             backupCommand = ('module load anaconda3; '
                              'conda activate CichlidBowerTracker; '
