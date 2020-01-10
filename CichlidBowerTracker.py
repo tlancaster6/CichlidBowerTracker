@@ -25,14 +25,14 @@ pacePrepParser = subparsers.add_parser('PacePrep',
 pacePrepParser.add_argument('-p', '--ProjectIDs', nargs='+', required=True, type=str,
                             help='Manually identify the projects you want to analyze')
 pacePrepParser.add_argument('-t', '--TempDir', type=str,
-                            help='Optional. Manually designate the temp directory. Enter LSS to use local scratch storage on PACE',
-                            default=None)
+                            help='Optional. Manually designate the temp directory. Default is LSS, the local scratch storage on PACE',
+                            default='LSS')
 pacePrepParser.add_argument('-m', '--Email', type=str,
                             help='Optional. Enter an email that will receive updates during PACE analysis',
                             default=None)
 pacePrepParser.add_argument('-w', '--Workers', type=int,
                             help='Use if you want to control the max number of workers used for an individual job',
-                            default=64)
+                            default=14)
 
 projectParser = subparsers.add_parser('ProjectAnalysis',
                                       help='This command performs a single type of analysis of the project. It is meant to be chained together to perform the entire analysis')
@@ -235,25 +235,31 @@ if args.command == 'TotalProjectAnalysis':
 
         elif args.Computer == 'PACE':
             pbs_dir = 'scratch/' + projectID + '/PBS'
-            code_dir = 'data/CichlidBowerTracker/'
 
             print(time.asctime() + ' -- Analyzing projectID: ' + projectID, file=f)
             print(time.asctime() + ' -- Analyzing projectID: ' + projectID)
 
-            print(time.asctime() + ' -- Downloading data to Pace', file=f)
-            print(time.asctime() + ' -- Downloading data to Pace')
-
-            downloadCommand = ('module load anaconda3; '
-                               'conda activate CichlidBowerTracker; '
-                               'python3 CichlidBowerTracker.py ProjectAnalysis Download {}'.format(projectID))
-            downloadProcess = datamover_shell.run(['sh', '-c', downloadCommand], cwd=code_dir, encoding='utf-8')
-
             print(time.asctime() + ' -- Submitting pbs scripts', file=f)
             print(time.asctime() + ' -- Submitting pbs scripts')
 
-            depthProcess = r6_shell.run(['qsub', 'DepthAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
-            clusterProcess = r6_shell.run(['qsub', 'ClusterAnalysis.pbs'], cwd=pbs_dir, encoding='utf-8')
-            job_ids = {'depth': str(depthProcess.output), 'cluster': str(clusterProcess.output)}
+            if wait:
+                downloadCommand = ['qsub', '-W', 'depend=after:{}'.format(job_ids['backup']), 'Download.pbs']
+                downloadProcess = r6_shell.run(downloadCommand, cwd=pbs_dir, encoding='utf-8')
+                job_ids.update({'download': str(downloadProcess.output)})
+
+            else:
+                wait = True
+                downloadCommand = ['qsub', 'Download.pbs']
+                downloadProcess = r6_shell.run(downloadCommand, cwd=pbs_dir, encoding='utf-8')
+                job_ids = {'download': str(downloadProcess.output)}
+
+            depthCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'DepthAnalysis.pbs']
+            depthProcess = r6_shell.run(depthCommand, cwd=pbs_dir, encoding='utf-8')
+            job_ids.update({'depth': str(depthProcess.output)})
+
+            clusterCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'ClusterAnalysis.pbs']
+            clusterProcess = r6_shell.run(clusterCommand, cwd=pbs_dir, encoding='utf-8')
+            job_ids.update({'cluster': str(clusterProcess.output)})
 
             clusterProcessWrapupCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['cluster']),
                                            'PostClusterAnalysis.pbs']
@@ -266,8 +272,7 @@ if args.command == 'TotalProjectAnalysis':
             job_ids.update({'classifier': str(classifierProcess.output)})
 
             figureCommand = ['qsub', '-W',
-                             'depend=afterok:{0}:{1}'.format(job_ids['clusterWrapup'], job_ids['classifier']),
-                             'FigurePreparer.pbs']
+                             'depend=afterok:{}'.format(job_ids['classifier']), 'FigurePreparer.pbs']
             figureProcess = r6_shell.run(figureCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'figures': str(figureProcess.output)})
 
@@ -279,11 +284,23 @@ if args.command == 'TotalProjectAnalysis':
             backupProcess = r6_shell.run(backupCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'backup': str(backupProcess.output)})
 
-            print(time.asctime() + ' -- All jobs submitted. Job IDs: ', file=f)
-            print(time.asctime() + ' -- All jobs submitted. Job IDs: ')
+            print(time.asctime() + ' -- jobs submitted. Job IDs: ', file=f)
+            print(time.asctime() + ' -- jobs submitted. Job IDs: ')
             for job, job_id in job_ids.items():
                 print('   ' + job + ':' + job_id, file=f)
                 print('   ' + job + ':' + job_id)
+            print('\n\n')
+            print('\n\n', file=f)
 
-    f.close()
-    summarizeProcess = subprocess.run(['python3', 'CichlidBowerTracker.py', 'UpdateAnalysisSummary'])
+    if args.Computer == 'PACE':
+        print('finalizing submission')
+
+        template_dir = 'data/CichlidBowerTracker/PbsTemplates'
+        updateAnalysisCommand = ['qsub', '-W', 'depend=after:{}'.format(job_ids['backup']), 'UpdateAnalysis.pbs']
+        updateAnalysisProcess = r6_shell.run(updateAnalysisCommand, cwd=template_dir, encoding='utf-8')
+
+        print('All jobs for all projects submitted. Safe to close local shell')
+
+    else:
+        f.close()
+        summarizeProcess = subprocess.run(['python3', 'CichlidBowerTracker.py', 'UpdateAnalysisSummary'])

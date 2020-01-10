@@ -1,0 +1,15 @@
+#PBS -N Analysis_Update
+#PBS -l nodes=1:ppn=1
+#PBS -l feature=intel
+#PBS -l walltime=12:00:00
+#PBS -q iw-shared-6
+#PBS -j oe
+#PBS -o ../Troubleshooting/UpdateAnalysis.out
+#PBS -M ${EMAIL}
+#PBS -m abe
+
+cd ~/data/CichlidBowerTracker
+echo "Started on `/bin/hostname`"
+module load anaconda3
+source activate CichlidBowerTracker
+python3 CichlidBowerTracker.py UpdateAnalysisSummary
