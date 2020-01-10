@@ -242,6 +242,7 @@ if args.command == 'TotalProjectAnalysis':
 
             print(job_ids)
             depthCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'DepthAnalysis.pbs']
+            print(depthCommand)
             depthProcess = r6_shell.run(depthCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'depth': str(depthProcess.output)[:-2]})
 
