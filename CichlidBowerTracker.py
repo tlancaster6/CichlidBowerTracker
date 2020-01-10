@@ -232,46 +232,46 @@ if args.command == 'TotalProjectAnalysis':
             if wait:
                 downloadCommand = ['qsub', '-W', 'depend=after:{}'.format(job_ids['backup']), 'Download.pbs']
                 downloadProcess = r6_shell.run(downloadCommand, cwd=pbs_dir, encoding='utf-8')
-                job_ids.update({'download': str(downloadProcess.output)[:-2]})
+                job_ids.update({'download': str(downloadProcess.output)[:-1]})
 
             else:
                 wait = True
                 downloadCommand = ['qsub', 'Download.pbs']
                 downloadProcess = r6_shell.run(downloadCommand, cwd=pbs_dir, encoding='utf-8')
-                job_ids = {'download': str(downloadProcess.output)[:-2]}
+                job_ids = {'download': str(downloadProcess.output)[:-1]}
 
             print(job_ids)
             depthCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'DepthAnalysis.pbs']
             print(depthCommand)
             depthProcess = r6_shell.run(depthCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'depth': str(depthProcess.output)[:-2]})
+            job_ids.update({'depth': str(depthProcess.output)[:-1]})
 
             clusterCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'ClusterAnalysis.pbs']
             clusterProcess = r6_shell.run(clusterCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'cluster': str(clusterProcess.output)[:-2]})
+            job_ids.update({'cluster': str(clusterProcess.output)[:-1]})
 
             clusterProcessWrapupCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['cluster']),
                                            'PostClusterAnalysis.pbs']
             clusterProcessWrapup = r6_shell.run(clusterProcessWrapupCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'clusterWrapup': str(clusterProcessWrapup.output)[:-2]})
+            job_ids.update({'clusterWrapup': str(clusterProcessWrapup.output)[:-1]})
 
             classifierProcessCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['clusterWrapup']),
                                         'MLClusterClassifier.pbs']
             classifierProcess = r7_shell.run(classifierProcessCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'classifier': str(classifierProcess.output)[:-2]})
+            job_ids.update({'classifier': str(classifierProcess.output)[:-1]})
 
             figureCommand = ['qsub', '-W',
                              'depend=afterok:{}'.format(job_ids['classifier']), 'FigurePreparer.pbs']
             figureProcess = r6_shell.run(figureCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'figures': str(figureProcess.output)[:-2]})
+            job_ids.update({'figures': str(figureProcess.output)[:-1]})
 
             outfileCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs']
             outfileProcess = r6_shell.run(outfileCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'oufile': str(outfileProcess.output)[:-2]})
+            job_ids.update({'oufile': str(outfileProcess.output)[:-1]})
 
             backupCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['outfile']), 'Backup.pbs']
             backupProcess = r6_shell.run(backupCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'backup': str(backupProcess.output)[:-2]})
+            job_ids.update({'backup': str(backupProcess.output)[:-1]})
 
             print(time.asctime() + ' -- jobs submitted. Job IDs: ', file=f)
             print(time.asctime() + ' -- jobs submitted. Job IDs: ')
