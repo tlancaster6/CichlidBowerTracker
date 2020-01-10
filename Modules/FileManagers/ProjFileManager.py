@@ -16,8 +16,15 @@ class ProjFileManager:
 	def downloadData(self, dtype):
 
 		if dtype == 'Download':
-			for d in ['Prep', 'PacePrep', 'Depth', 'Cluster', 'MLClassification', 'Figures', 'ObjectLabeler']:
+			for d in ['Prep', 'Depth', 'Cluster', 'MLClassification', 'Figures', 'ObjectLabeler']:
 				self.downloadData(d)
+
+		elif dtype == 'PBS':
+			self._createDirectory(self.localMasterDir)
+			try:
+				self._downloadDirectory(self.pbsDir)
+			except FileNotFoundError:
+				print('PBS files not present on dropbox')
 
 		elif dtype == 'Prep':
 			self._createDirectory(self.localMasterDir)
@@ -26,14 +33,6 @@ class ProjFileManager:
 			self._createDirectory(self.localMasterDir)
 			self._createDirectory(self.localAnalysisDir)
 			self._createDirectory(self.localFiguresDir)
-
-		elif dtype == 'PacePrep':
-			self._createDirectory(self.localMasterDir)
-			try:
-				self._downloadDirectory(self.pbsDir)
-			except FileNotFoundError:
-				self._createDirectory(self.localPbsDir)
-			self._downloadFile(self.logfile)
 
 		elif dtype == 'Depth':
 			self._createDirectory(self.localMasterDir)

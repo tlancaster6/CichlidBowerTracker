@@ -30,7 +30,7 @@ projectParser = subparsers.add_parser('ProjectAnalysis',
                                       help='This command performs a single type of analysis of the project. It is meant to be chained together to perform the entire analysis')
 projectParser.add_argument('AnalysisType', type=str,
                            choices=['Download', 'Depth', 'Cluster', 'CreateFrames', 'MLClassification',
-                                    'MLFishDetection', 'Figures', 'Backup', 'Outfiles'],
+                                    'MLFishDetection', 'Figures', 'Backup', 'Outfiles', 'PBS'],
                            help='What type of analysis to perform')
 projectParser.add_argument('ProjectID', type=str, help='Which projectID you want to identify')
 projectParser.add_argument('-w', '--Workers', type=int,
@@ -93,8 +93,8 @@ elif args.command == 'ProjectAnalysis':
     if args.AnalysisType == 'Download' or args.DownloadOnly:
         pp_obj.downloadData(args.AnalysisType)
 
-    elif args.AnalysisType == 'PacePrep':
-        pp_obj.runPacePrep(args.Email)
+    elif args.AnalysisType == 'PBS':
+        pp_obj.downloadData('PBS')
 
     elif args.AnalysisType == 'Depth':
         pp_obj.runDepthAnalysis()
@@ -131,11 +131,6 @@ if args.command == 'TotalProjectAnalysis':
         uname = input('Username: ')
         pword = getpass.getpass()
         local_shell = spur.LocalShell()
-        pids = ' '.join(args.ProjectIDs)
-        email = '' if args.Email is None else ' -m ' + args.Email
-        pacePrepCommands = ('conda activate CichlidBowerTracker; '
-                            'python3 CichlidBowerTracker.py PacePrep -t LSS -p {0}{1}'.format(pids, email))
-        local_shell.run(['sh', '-c', pacePrepCommands])
         datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
         r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
         r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
@@ -218,6 +213,12 @@ if args.command == 'TotalProjectAnalysis':
 
         elif args.Computer == 'PACE':
             pbs_dir = 'scratch/' + projectID + '/PBS'
+            code_dir = 'data/CichlidBowerTracker'
+
+            pbsDownloadCommand = ('module load anaconda3; '
+                                  'source activate CichlidBowerTracker;'
+                                  'python3 CichlidBowerTracker.py ProjectAnalysis PBS -p {}'.format(projectID))
+            datamover_shell.run(['sh', '-c', pbsDownloadCommand], cwd=code_dir)
 
             print(time.asctime() + ' -- Analyzing projectID: ' + projectID, file=f)
             print(time.asctime() + ' -- Analyzing projectID: ' + projectID)
