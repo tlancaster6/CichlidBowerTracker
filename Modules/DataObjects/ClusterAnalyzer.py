@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import KernelDensity
-from sklearn.model_selection import GridSearchCV
 from skimage import morphology
 import datetime
 import sys
@@ -46,12 +45,12 @@ class ClusterAnalyzer:
 
     def sliceDataframe(self, t0=None, t1=None, bid=None, columns=None, input_frame=None, cropped=False):
         df_slice = self.clusterData if input_frame is None else input_frame
-        df_slice = df_slice.dropna(subset=['modelAll_18_pred']).sort_index()
+        df_slice = df_slice.dropna(subset=['Model18_All_pred']).sort_index()
         if t0 is not None:
             self._checkTimes(t0, t1)
             df_slice = df_slice[t0:t1]
         if bid is not None:
-            df_slice = df_slice[df_slice.modelAll_18_pred == bid]
+            df_slice = df_slice[df_slice.Model18_All_pred == bid]
         if columns is not None:
             df_slice = df_slice[columns]
         if cropped:
@@ -66,11 +65,11 @@ class ClusterAnalyzer:
         df_slice = self.sliceDataframe(cropped=cropped)
         if bid == 'all':
             df_slice = self.sliceDataframe(t0=t0, t1=t1, input_frame=df_slice)
-            row = df_slice.modelAll_18_pred.value_counts().to_dict
+            row = df_slice.Model18_All_pred.value_counts().to_dict
             return row
         else:
             df_slice = self.sliceDataframe(t0=t0, t1=t1, bid=bid, input_frame=df_slice)
-            cell = df_slice.modelAll_18_pred.count()
+            cell = df_slice.Model18_All_pred.count()
             return cell
 
     def returnClusterKDE(self, t0, t1, bid, cropped=False, bandwidth=None):

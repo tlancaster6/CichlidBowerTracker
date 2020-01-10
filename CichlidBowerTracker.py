@@ -241,6 +241,7 @@ if args.command == 'TotalProjectAnalysis':
 
             print(time.asctime() + ' -- Downloading data to Pace', file=f)
             print(time.asctime() + ' -- Downloading data to Pace')
+
             downloadCommand = ('module load anaconda3; '
                                'conda activate CichlidBowerTracker; '
                                'python3 CichlidBowerTracker.py ProjectAnalysis Download {}'.format(projectID))
