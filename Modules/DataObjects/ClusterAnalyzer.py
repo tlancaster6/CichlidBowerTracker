@@ -72,7 +72,7 @@ class ClusterAnalyzer:
             cell = df_slice.Model18_All_pred.count()
             return cell
 
-    def returnClusterKDE(self, t0, t1, bid, cropped=False, bandwidth=None):
+    def returnClusterKDE(self, t0, t1, bid, cropped=False, bandwidth=10.0):
         df_slice = self.sliceDataframe(t0=t0, t1=t1, bid=bid, cropped=cropped, columns=['X_depth', 'Y_depth'])
         n_events = len(df_slice.index)
         x_bins = int(self.tray_r[3] - self.tray_r[1])
