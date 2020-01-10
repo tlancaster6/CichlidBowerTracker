@@ -255,7 +255,7 @@ if args.command == 'TotalProjectAnalysis':
             clusterProcessWrapup = r6_shell.run(clusterProcessWrapupCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'clusterWrapup': str(clusterProcessWrapup.output).split('.')[0]})
 
-            classifierProcessCommand = ['qsub' '-W' 'depend=afterok:{}'.format(job_ids['clusterWrapup']),
+            classifierProcessCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['clusterWrapup']),
                                         'MLClusterClassifier.pbs']
             classifierProcess = r7_shell.run(classifierProcessCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'classifier': str(classifierProcess.output).split('.')[0]})
