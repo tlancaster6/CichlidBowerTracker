@@ -215,14 +215,17 @@ if args.command == 'TotalProjectAnalysis':
             pbs_dir = 'scratch/' + projectID + '/PBS'
             code_dir = 'data/CichlidBowerTracker'
 
+            print(time.asctime() + ' -- Analyzing projectID: ' + projectID, file=f)
+            print(time.asctime() + ' -- Analyzing projectID: ' + projectID)
+
+            print(time.asctime() + ' -- gathering necessary files', file=f)
             print(time.asctime() + ' -- gathering necessary files')
+
             pbsDownloadCommand = ('module load anaconda3; '
                                   'source activate CichlidBowerTracker;'
                                   'python3 CichlidBowerTracker.py ProjectAnalysis PBS {}'.format(projectID))
             datamover_shell.run(['sh', '-c', pbsDownloadCommand], cwd=code_dir, encoding='utf-8')
 
-            print(time.asctime() + ' -- Analyzing projectID: ' + projectID, file=f)
-            print(time.asctime() + ' -- Analyzing projectID: ' + projectID)
 
             print(time.asctime() + ' -- Submitting pbs scripts', file=f)
             print(time.asctime() + ' -- Submitting pbs scripts')
@@ -239,6 +242,7 @@ if args.command == 'TotalProjectAnalysis':
                 job_ids = {'download': str(downloadProcess.output)}
 
             depthCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'DepthAnalysis.pbs']
+            print(depthCommand)
             depthProcess = r6_shell.run(depthCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'depth': str(depthProcess.output)})
 
