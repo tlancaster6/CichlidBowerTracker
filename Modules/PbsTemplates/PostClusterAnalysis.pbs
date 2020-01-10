@@ -2,7 +2,6 @@
 #PBS -l nodes=1:ppn=1
 #PBS -l feature=intel
 #PBS -l walltime=30:00
-#PBS -l pmem=2gb
 #PBS -q iw-shared-6
 #PBS -j oe
 #PBS -o ../Troubleshooting/PostClusterAnalysis.out
