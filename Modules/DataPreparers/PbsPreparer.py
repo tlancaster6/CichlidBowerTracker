@@ -93,3 +93,14 @@ class PbsPreparer:
         outfile = open(self.projFileManager.localPbsDir + 'OutfilePreparer.pbs', 'w')
         outfile.write(mod)
         outfile.close()
+
+        # Generate Backup PBS
+        d = {'PROJECT_ID': self.projFileManager.projectID, 'EMAIL': self.email}
+        infile = open(os.path.join(os.getcwd(), 'Modules', 'PbsTemplates', 'Backup.pbs'), 'r')
+        mod = Template(infile.read()).safe_substitute(d)
+        infile.close()
+        if self.email is None:
+            mod = mod.replace('#PBS -M None\n#PBS -m abe\n', '')
+        outfile = open(self.projFileManager.localPbsDir + 'Backup.pbs', 'w')
+        outfile.write(mod)
+        outfile.close()

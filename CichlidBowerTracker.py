@@ -274,6 +274,10 @@ if args.command == 'TotalProjectAnalysis':
             outfileProcess = r6_shell.run(outfileCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'oufile': str(outfileProcess.output)})
 
+            backupCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['outfile']), 'Backup.pbs']
+            backupProcess = r6_shell.run(backupCommand, cwd=pbs_dir, encoding='utf-8')
+            job_ids.update({'backup': str(backupProcess.output)})
+
             print(time.asctime() + ' -- All jobs submitted. Job IDs: ', file=f)
             print(time.asctime() + ' -- All jobs submitted. Job IDs: ')
             for job, job_id in job_ids.items():

@@ -44,4 +44,3 @@ class OutfilePreparer:
             rows.append(row)
         all_data = pd.DataFrame(rows).sort_values(by='job_name').reset_index(drop=True)
         all_data.to_csv(self.projFileManager.localAnalysisDir + 'outfileSummary.csv')
-
