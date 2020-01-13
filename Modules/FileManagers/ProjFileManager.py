@@ -1,4 +1,4 @@
-import os, subprocess, pdb, glob
+import os, subprocess, pdb
 
 
 class ProjFileManager:

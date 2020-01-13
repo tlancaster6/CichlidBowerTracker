@@ -126,166 +126,109 @@ if args.command == 'TotalProjectAnalysis':
         sys.exit()
 
     if args.Computer == 'PACE':
-        import spur, getpass, time
+        import spur, getpass
         uname = input('Username: ')
         pword = getpass.getpass()
         datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
         r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
-        wait = False
 
-    f = open('Analysis.log', 'w')
+        print('Preparing for Analysis')
+        for n, pid in enumerate(args.ProjectIDs):
+            cloudPbsDir = 'cichlidVideo:BioSci-McGrath/Apps/CichlidPiData/{0}/PBS'.format(pid)
+            localMasterDir = 'scratch/{}'.format(pid)
 
-    for projectID in args.ProjectIDs:
-        if args.Computer == 'SRG':
-            print('Analyzing projectID: ' + projectID, file=f)
-            downloadProcess = subprocess.run(
-                ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Download', projectID], stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE, encoding='utf-8')
-
-            print(downloadProcess.stdout, file=f)
-            depthProcess = subprocess.Popen(
-                ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Depth', projectID, '-w', '1'],
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
-            clusterProcess = subprocess.Popen(
-                ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Cluster', projectID, '-w', '23'],
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
-            depthOut = depthProcess.communicate()
-            clusterOut = clusterProcess.communicate()
-            print(depthOut[0], file=f)
-            print(clusterOut[0], file=f)
-            mlProcess = subprocess.run(
-                ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'MLClassification', projectID],
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
-            print(mlProcess.stdout, file=f)
-            # print(mlProcess.stderr, file = f)
-
-            error = False
-            if depthOut[1] != '':
-                print('DepthError: ' + depthOut[1])
-                print('DepthError: ' + depthOut[1], file=f)
-                error = True
-
-            if clusterOut[1] != '':
-                print('ClusterError: ' + clusterOut[1])
-                print('ClusterError: ' + clusterOut[1], file=f)
-                error = True
-
-            if mlProcess.stderr != '':
-                print('MLError: ' + mlProcess.stderr)
-                print('MLError: ' + mlProcess.stderr, file=f)
-                error = True
-
-            if error:
-                f.close()
-                sys.exit()
-
-            backupProcess = subprocess.run(
-                ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Backup', projectID], stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE, encoding='utf-8')
-
-        elif args.Computer == 'NURF':
-            print('Analyzing projectID: ' + projectID, file=f)
-            downloadProcess = subprocess.run(
-                ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Download', projectID], stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE, encoding='utf-8')
-            print(downloadProcess.stdout, file=f)
-            depthProcess = subprocess.Popen(
-                ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Depth', projectID, '-w', '1'],
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
-            clusterProcess = subprocess.Popen(
-                ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Cluster', projectID, '-w', '23'],
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
-            depthOut = depthProcess.communicate()
-            clusterOut = clusterProcess.communicate()
-            print(depthOut[0], file=f)
-            print(clusterOut[0], file=f)
-
-            if depthOut[1] != '' or clusterOut[1] != '':
-                print('DepthError: ' + depthOut[1])
-                print('ClusterError: ' + clusterOut[1])
-                sys.exit()
-            backupProcess = subprocess.run(
-                ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Backup', projectID], stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE, encoding='utf-8')
-
-        elif args.Computer == 'PACE':
-            pbs_dir = 'scratch/' + projectID + '/PBS'
-            code_dir = 'data/CichlidBowerTracker'
-
-            print(time.asctime() + ' -- Analyzing projectID: ' + projectID, file=f)
-            print(time.asctime() + ' -- Analyzing projectID: ' + projectID)
-
-            # print(time.asctime() + ' -- gathering necessary files', file=f)
-            # print(time.asctime() + ' -- gathering necessary files')
-            #
-            # pbsDownloadCommand = ('module load anaconda3; '
-            #                       'source activate CichlidBowerTracker;'
-            #                       'python3 CichlidBowerTracker.py ProjectAnalysis PBS {}'.format(projectID))
-            # datamover_shell.run(['sh', '-c', pbsDownloadCommand], cwd=code_dir, encoding='utf-8')
-
-
-            print(time.asctime() + ' -- Submitting pbs scripts', file=f)
-            print(time.asctime() + ' -- Submitting pbs scripts')
-
-            if wait:
-                downloadCommand = ['qsub', '-W', 'depend=after:{}'.format(job_ids['backup']), 'Download.pbs']
-                downloadProcess = r6_shell.run(downloadCommand, cwd=pbs_dir, encoding='utf-8')
-                job_ids.update({'download': str(downloadProcess.output)[:-1]})
-
+            command = ('mkdir {0};'
+                       'module load anaconda3;'
+                       'source activate CichlidBowerTracker;'
+                       'rclone copy {1} {0};'.format(localMasterDir, cloudPbsDir))
+            datamover_shell.run(['sh', '-c', command], encoding='utf-8')
+            if (n + 1) < len(args.ProjectIDs):
+                with r6_shell.open(localMasterDir + '/PBS/Backup.pbs', 'a') as f:
+                    f.write('ssh login-s \'cd ~/scratch/{}/PBS; qsub Download.pbs\''.format(args.ProjectIDs[n+1]))
             else:
-                wait = True
-                downloadCommand = ['qsub', 'Download.pbs']
-                downloadProcess = r6_shell.run(downloadCommand, cwd=pbs_dir, encoding='utf-8')
-                job_ids = {'download': str(downloadProcess.output)[:-1]}
+                with r6_shell.open(localMasterDir + 'PBS/Backup.pbs', 'a') as f:
+                    f.write('ssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'')
 
-            depthCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'DepthAnalysis.pbs']
-            depthProcess = r6_shell.run(depthCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'depth': str(depthProcess.output)[:-1]})
+        print('Initiating Analysis')
+        r6_shell.run(['qsub', 'Download.pbs'], cwd='scratch/' + args.ProjectIDs[0] + '/PBS', encoding='utf-8')
 
-            clusterCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['download']), 'ClusterAnalysis.pbs']
-            clusterProcess = r6_shell.run(clusterCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'cluster': str(clusterProcess.output)[:-1]})
-
-            clusterProcessWrapupCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['cluster']),
-                                           'PostClusterAnalysis.pbs']
-            clusterProcessWrapup = r6_shell.run(clusterProcessWrapupCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'clusterWrapup': str(clusterProcessWrapup.output)[:-1]})
-
-            classifierProcessCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['clusterWrapup']),
-                                        'MLClusterClassifier.pbs']
-            classifierProcess = r6_shell.run(classifierProcessCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'classifier': str(classifierProcess.output)[:-1]})
-
-            figureCommand = ['qsub', '-W',
-                             'depend=afterok:{}'.format(job_ids['classifier']), 'FigurePreparer.pbs']
-            figureProcess = r6_shell.run(figureCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'figures': str(figureProcess.output)[:-1]})
-
-            outfileCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['figures']), 'OutfilePreparer.pbs']
-            outfileProcess = r6_shell.run(outfileCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'oufile': str(outfileProcess.output)[:-1]})
-
-            backupCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['outfile']), 'Backup.pbs']
-            backupProcess = r6_shell.run(backupCommand, cwd=pbs_dir, encoding='utf-8')
-            job_ids.update({'backup': str(backupProcess.output)[:-1]})
-
-            print(time.asctime() + ' -- jobs submitted. Job IDs: ', file=f)
-            print(time.asctime() + ' -- jobs submitted. Job IDs: ')
-            for job, job_id in job_ids.items():
-                print('   ' + job + ':' + job_id, file=f)
-                print('   ' + job + ':' + job_id)
-            print('\n\n')
-            print('\n\n', file=f)
-
-    if args.Computer == 'PACE':
-        print('finalizing submission')
-
-        template_dir = 'data/CichlidBowerTracker/PbsTemplates'
-        updateAnalysisCommand = ['qsub', '-W', 'depend=after:{}'.format(job_ids['backup']), 'UpdateAnalysis.pbs']
-        updateAnalysisProcess = r6_shell.run(updateAnalysisCommand, cwd=template_dir, encoding='utf-8')
-
-        print('All jobs for all projects submitted. Safe to close local shell')
+        print('Analysis Initiated. Safe to close local shell')
 
     else:
+        import time
+        f = open('Analysis.log', 'w')
+        for projectID in args.ProjectIDs:
+            if args.Computer == 'SRG':
+                print('Analyzing projectID: ' + projectID, file=f)
+                downloadProcess = subprocess.run(
+                    ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Download', projectID], stderr=subprocess.PIPE,
+                    stdout=subprocess.PIPE, encoding='utf-8')
+
+                print(downloadProcess.stdout, file=f)
+                depthProcess = subprocess.Popen(
+                    ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Depth', projectID, '-w', '1'],
+                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
+                clusterProcess = subprocess.Popen(
+                    ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Cluster', projectID, '-w', '23'],
+                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
+                depthOut = depthProcess.communicate()
+                clusterOut = clusterProcess.communicate()
+                print(depthOut[0], file=f)
+                print(clusterOut[0], file=f)
+                mlProcess = subprocess.run(
+                    ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'MLClassification', projectID],
+                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
+                print(mlProcess.stdout, file=f)
+                # print(mlProcess.stderr, file = f)
+
+                error = False
+                if depthOut[1] != '':
+                    print('DepthError: ' + depthOut[1])
+                    print('DepthError: ' + depthOut[1], file=f)
+                    error = True
+
+                if clusterOut[1] != '':
+                    print('ClusterError: ' + clusterOut[1])
+                    print('ClusterError: ' + clusterOut[1], file=f)
+                    error = True
+
+                if mlProcess.stderr != '':
+                    print('MLError: ' + mlProcess.stderr)
+                    print('MLError: ' + mlProcess.stderr, file=f)
+                    error = True
+
+                if error:
+                    f.close()
+                    sys.exit()
+
+                backupProcess = subprocess.run(
+                    ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Backup', projectID], stderr=subprocess.PIPE,
+                    stdout=subprocess.PIPE, encoding='utf-8')
+
+            elif args.Computer == 'NURF':
+                print('Analyzing projectID: ' + projectID, file=f)
+                downloadProcess = subprocess.run(
+                    ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Download', projectID], stderr=subprocess.PIPE,
+                    stdout=subprocess.PIPE, encoding='utf-8')
+                print(downloadProcess.stdout, file=f)
+                depthProcess = subprocess.Popen(
+                    ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Depth', projectID, '-w', '1'],
+                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
+                clusterProcess = subprocess.Popen(
+                    ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Cluster', projectID, '-w', '23'],
+                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, encoding='utf-8')
+                depthOut = depthProcess.communicate()
+                clusterOut = clusterProcess.communicate()
+                print(depthOut[0], file=f)
+                print(clusterOut[0], file=f)
+
+                if depthOut[1] != '' or clusterOut[1] != '':
+                    print('DepthError: ' + depthOut[1])
+                    print('ClusterError: ' + clusterOut[1])
+                    sys.exit()
+                backupProcess = subprocess.run(
+                    ['python3', 'CichlidBowerTracker.py', 'ProjectAnalysis', 'Backup', projectID], stderr=subprocess.PIPE,
+                    stdout=subprocess.PIPE, encoding='utf-8')
+
         f.close()
         summarizeProcess = subprocess.run(['python3', 'CichlidBowerTracker.py', 'UpdateAnalysisSummary'])
