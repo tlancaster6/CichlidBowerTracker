@@ -27,16 +27,6 @@ class ProjectPreparer():
 		if dtype in ['Download', 'MLClassification']:
 			self.mlFileManager.downloadData()
 
-	def runPacePrep(self, email=None):
-		self.fileManager.createDirs()
-		self.projFileManager.downloadData('PacePrep')
-		pbs_obj = PBS(self.projFileManager, self.workers, email)
-		pbs_obj.validateInputData()
-		pbs_obj.createPBS()
-		self.createUploadFile(pbs_obj.uploads)
-		self.createAnalysisUpdate('PacePrep', pbs_obj)
-		self.backupAnalysis()
-
 	def runPrepAnalysis(self):
 		self.fileManager.createDirs()
 		self.projFileManager.downloadData('Prep')
@@ -47,6 +37,14 @@ class ProjectPreparer():
 		self.createAnalysisUpdate('Prep', prp_obj)
 		self.backupAnalysis()
 		#self.localDelete()
+
+	def runPacePrep(self, email=None):
+		pbs_obj = PBS(self.projFileManager, self.workers, email)
+		pbs_obj.validateInputData()
+		pbs_obj.createPBS()
+		self.createUploadFile(pbs_obj.uploads)
+		self.createAnalysisUpdate('PacePrep', pbs_obj)
+		self.backupAnalysis()
 
 	def runDepthAnalysis(self):
 		dp_obj = DP(self.projFileManager, self.workers)
