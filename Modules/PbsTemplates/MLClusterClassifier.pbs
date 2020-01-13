@@ -7,9 +7,6 @@
 #PBS -M ${EMAIL}
 #PBS -m abe
 
-cd ~/data/CichlidBowerTracker
 echo "Started on `/bin/hostname`"
-module load git-lfs
-module load anaconda3
-source activate CichlidBowerTracker
-python3 CichlidBowerTracker.py ProjectAnalysis MLClassification ${PROJECT_ID} -w 8 -t ${TMPDIR}
+ssh login7-d 'cd ~/data/CichlidBowerTracker; module load git-lfs; module load anaconda3; conda activate CichlidBowerTracker; python3 CichlidBowerTracker.py ProjectAnalysis MLClassification ${PROJECT_ID} -w 8 -t ${TMPDIR}'
+
