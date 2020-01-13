@@ -35,11 +35,13 @@ class ProjectPreparer():
 		prp_obj.prepData()
 		self.createUploadFile(prp_obj.uploads)
 		self.createAnalysisUpdate('Prep', prp_obj)
+
 		pbs_obj = PBS(self.projFileManager, self.workers, email)
 		pbs_obj.validateInputData()
 		pbs_obj.createPBS()
 		self.createUploadFile(pbs_obj.uploads)
 		self.createAnalysisUpdate('PacePrep', pbs_obj)
+
 		self.backupAnalysis()
 		#self.localDelete()
 

@@ -19,14 +19,6 @@ class ProjFileManager:
 			for d in ['Prep', 'Depth', 'Cluster', 'MLClassification', 'Figures', 'ObjectLabeler']:
 				self.downloadData(d)
 
-		elif dtype == 'PBS':
-			self._createDirectory(self.localMasterDir)
-			self._createDirectory(self.localTroubleshootingDir)
-			try:
-				self._downloadDirectory(self.pbsDir)
-			except FileNotFoundError:
-				print('PBS files not present on dropbox')
-
 		elif dtype == 'Prep':
 			self._createDirectory(self.localMasterDir)
 			self._downloadFile(self.logfile)
