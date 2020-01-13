@@ -16,7 +16,7 @@ module load anaconda3
 source activate CichlidBowerTracker
 python3 CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w ${WORKERS} -v ${PBS_ARRAYID} -t ${TMPDIR}
 
-if [${PBS_ARRAYID} -eq ${ARRAY_MAX}]
+if [ ${PBS_ARRAYID} -eq ${ARRAY_MAX} ]
 then
     ssh login-s 'cd ~/scratch/${PROJECT_ID}/PBS; qsub -W depend=afterokarray:${PBS_JOBID} PostClusterAnalysis.pbs'
 fi
