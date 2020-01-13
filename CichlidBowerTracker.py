@@ -135,18 +135,18 @@ if args.command == 'TotalProjectAnalysis':
         print('Preparing for Analysis')
         for n, pid in enumerate(args.ProjectIDs):
             cloudPbsDir = 'cichlidVideo:BioSci-McGrath/Apps/CichlidPiData/{0}/PBS'.format(pid)
-            localMasterDir = 'scratch/{}'.format(pid)
+            localPbsDir = 'scratch/{}/PBS'.format(pid)
 
-            command = ('mkdir {0};'
+            command = ('mkdir -p {0};'
                        'module load anaconda3;'
                        'source activate CichlidBowerTracker;'
-                       'rclone copy {1} {0};'.format(localMasterDir, cloudPbsDir))
+                       'rclone copy {1} {0};'.format(localPbsDir, cloudPbsDir))
             datamover_shell.run(['sh', '-c', command], encoding='utf-8')
             if (n + 1) < len(args.ProjectIDs):
-                with r6_shell.open(localMasterDir + '/PBS/Backup.pbs', 'a') as f:
+                with r6_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
                     f.write('ssh login-s \'cd ~/scratch/{}/PBS; qsub Download.pbs\''.format(args.ProjectIDs[n+1]))
             else:
-                with r6_shell.open('~/' + localMasterDir + '/PBS/Backup.pbs', 'a') as f:
+                with r6_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
                     f.write('ssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'')
 
         print('Initiating Analysis')

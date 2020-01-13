@@ -18,5 +18,5 @@ python3 CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w ${WORKER
 
 if [${PBS_ARRAYID} -eq ${ARRAY_MAX}]
 then
-    ssh login-s 'cd ~/scratch/${PROJECT_ID}/PBS; qsub PostClusterAnalysis.pbs'
+    ssh login-s 'cd ~/scratch/${PROJECT_ID}/PBS; qsub -W depend=afterokarray:${PBS_JOBID} PostClusterAnalysis.pbs'
 fi
