@@ -131,7 +131,6 @@ if args.command == 'TotalProjectAnalysis':
         pword = getpass.getpass()
         datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
         r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
-        r7_shell = spur.SshShell(hostname='login7-d.pace.gatech.edu', username=uname, password=pword)
         wait = False
 
     f = open('Analysis.log', 'w')
@@ -254,8 +253,7 @@ if args.command == 'TotalProjectAnalysis':
 
             classifierProcessCommand = ['qsub', '-W', 'depend=afterok:{}'.format(job_ids['clusterWrapup']),
                                         'MLClusterClassifier.pbs']
-            print(classifierProcessCommand)
-            classifierProcess = r7_shell.run(classifierProcessCommand, cwd=pbs_dir, encoding='utf-8')
+            classifierProcess = r6_shell.run(classifierProcessCommand, cwd=pbs_dir, encoding='utf-8')
             job_ids.update({'classifier': str(classifierProcess.output)[:-1]})
 
             figureCommand = ['qsub', '-W',
