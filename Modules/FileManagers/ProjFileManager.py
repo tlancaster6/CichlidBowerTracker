@@ -34,6 +34,7 @@ class ProjFileManager:
 			self._createDirectory(self.localMasterDir)
 			self._createDirectory(self.localAnalysisDir)
 			self._createDirectory(self.localFiguresDir)
+			self._createDirectory(self.localPbsDir)
 
 		elif dtype == 'Depth':
 			self._createDirectory(self.localMasterDir)
