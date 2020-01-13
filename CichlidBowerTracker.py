@@ -75,7 +75,7 @@ elif args.command == 'ManualPrep':
 
     for projectID in args.ProjectIDs:
         pp_obj = PP(projectID, args.Workers, args.TempDir)
-        pp_obj.runPrepAnalysis(args.email)
+        pp_obj.runPrepAnalysis(args.Email)
 
     ap_obj.updateAnalysisFile(newProjects=False, projectSummary=False)
 
