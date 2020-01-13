@@ -8,7 +8,6 @@
 #PBS -M ${EMAIL}
 #PBS -m abe
 
-cd ~/data/CichlidBowerTracker
 echo "Started on `/bin/hostname`"
-ssh iw-dm-4 'module load anaconda3; conda activate CichlidBowerTracker; python3 CichlidBowerTracker.py ProjectAnalysis Download ${PROJECT_ID}'
+ssh iw-dm-4 'cd ~/data/CichlidBowerTracker; module load anaconda3; conda activate CichlidBowerTracker; python3 CichlidBowerTracker.py ProjectAnalysis Download ${PROJECT_ID}'
 
