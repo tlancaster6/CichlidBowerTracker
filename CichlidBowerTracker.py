@@ -155,7 +155,6 @@ if args.command == 'TotalProjectAnalysis':
         print('Analysis Initiated. Safe to close local shell')
 
     else:
-        import time
         f = open('Analysis.log', 'w')
         for projectID in args.ProjectIDs:
             if args.Computer == 'SRG':
