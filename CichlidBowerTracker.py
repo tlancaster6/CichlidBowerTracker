@@ -146,7 +146,7 @@ if args.command == 'TotalProjectAnalysis':
                 with r6_shell.open(localMasterDir + '/PBS/Backup.pbs', 'a') as f:
                     f.write('ssh login-s \'cd ~/scratch/{}/PBS; qsub Download.pbs\''.format(args.ProjectIDs[n+1]))
             else:
-                with r6_shell.open(localMasterDir + 'PBS/Backup.pbs', 'a') as f:
+                with r6_shell.open(localMasterDir + '/PBS/Backup.pbs', 'a') as f:
                     f.write('ssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'')
 
         print('Initiating Analysis')

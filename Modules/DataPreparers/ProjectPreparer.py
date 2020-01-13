@@ -36,6 +36,7 @@ class ProjectPreparer():
 		self.createUploadFile(prp_obj.uploads)
 		self.createAnalysisUpdate('Prep', prp_obj)
 
+		print('prepping PBS scripts')
 		pbs_obj = PBS(self.projFileManager, self.workers, email)
 		pbs_obj.validateInputData()
 		pbs_obj.createPBS()
