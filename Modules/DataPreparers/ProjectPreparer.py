@@ -30,7 +30,7 @@ class ProjectPreparer():
 		if dtype in ['Download', 'MLClassification']:
 			self.mlFileManager.downloadData()
 
-	def runPrepAnalysis(self, email=None):
+	def runPrepAnalysis(self, pbs_only, email=None):
 		self.fileManager.createDirs()
 		self.projFileManager.downloadData('Prep')
 		prp_obj = PrP(self.projFileManager)

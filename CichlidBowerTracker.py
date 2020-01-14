@@ -25,6 +25,7 @@ prepParser.add_argument('-t', '--TempDir', type=str,
 prepParser.add_argument('-m', '--Email', type=str,
                             help='Optional. Enter an email that will receive updates during PACE analysis',
                             default=None)
+prepParser.add_argument('-P', '--PbsOnly', action='store_true', help='Optional. Use to skip all portions of prep except the PBS script generation and uploading')
 
 projectParser = subparsers.add_parser('ProjectAnalysis',
                                       help='This command performs a single type of analysis of the project. It is meant to be chained together to perform the entire analysis')
@@ -75,7 +76,7 @@ elif args.command == 'ManualPrep':
 
     for projectID in args.ProjectIDs:
         pp_obj = PP(projectID, args.Workers, args.TempDir)
-        pp_obj.runPrepAnalysis(args.Email)
+        pp_obj.runPrepAnalysis(args.PbsOnly, args.Email)
 
     ap_obj.updateAnalysisFile(newProjects=False, projectSummary=False)
 
