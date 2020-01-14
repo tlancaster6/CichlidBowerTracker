@@ -228,14 +228,13 @@ class ProjFileManager:
 
 		# First try to download tarred Directory
 		tar_directory = directory[:-1] + '.tar'
-		output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+		check_code = subprocess.run(['rclone', 'check', self.cloudMasterDir + tar_directory, self.localMasterDir + tar_directory], stderr=subprocess.PIPE, stdout=subprocess.PIPE).returncode
+		output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 		if os.path.exists(self.localMasterDir + tar_directory):
-			print(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir])
-			output = subprocess.run(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
-			if not os.path.exists(self.localMasterDir + directory):
-				raise FileNotFoundError('Unable to untar ' + tar_directory)
-			else:
-				subprocess.run(['rm', '-f', self.localMasterDir + tar_directory])
+			if check_code != 0:
+				output = subprocess.run(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+				if not os.path.exists(self.localMasterDir + directory):
+					raise FileNotFoundError('Unable to untar ' + tar_directory)
 
 		else:
 			output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + directory, self.localMasterDir + directory, '--exclude', '*.mp4'], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
