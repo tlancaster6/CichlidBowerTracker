@@ -230,11 +230,10 @@ class ProjFileManager:
 		tar_directory = directory[:-1] + '.tar'
 		check_code = subprocess.run(['rclone', 'check', self.cloudMasterDir + tar_directory, self.localMasterDir + tar_directory], stderr=subprocess.PIPE, stdout=subprocess.PIPE).returncode
 		output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-		if os.path.exists(self.localMasterDir + tar_directory):
-			if check_code != 0:
-				output = subprocess.run(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
-				if not os.path.exists(self.localMasterDir + directory):
-					raise FileNotFoundError('Unable to untar ' + tar_directory)
+		if os.path.exists(self.localMasterDir + tar_directory) and (check_code != 0):
+			output = subprocess.run(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+			if not os.path.exists(self.localMasterDir + directory):
+				raise FileNotFoundError('Unable to untar ' + tar_directory)
 
 		else:
 			output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + directory, self.localMasterDir + directory, '--exclude', '*.mp4'], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
