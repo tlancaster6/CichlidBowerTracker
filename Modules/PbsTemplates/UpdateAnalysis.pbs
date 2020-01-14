@@ -12,4 +12,4 @@ cd ~/data/CichlidBowerTracker
 echo "Started on `/bin/hostname`"
 module load anaconda3
 source activate CichlidBowerTracker
-python3 CichlidBowerTracker.py UpdateAnalysisSummary | xargs echo
+python3 CichlidBowerTracker.py UpdateAnalysisSummary | cat

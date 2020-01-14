@@ -12,6 +12,6 @@ cd ~/data/CichlidBowerTracker
 echo "Started on `/bin/hostname`"
 module load anaconda3
 source activate CichlidBowerTracker
-python3 CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w 1 -v -1 | xargs echo
+python3 CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w 1 -v -1 | cat
 
-ssh login7-d "cd ~/scratch/${PROJECT_ID}/PBS; qsub MLClusterClassifier.pbs" | xargs echo
+ssh login7-d "cd ~/scratch/${PROJECT_ID}/PBS; qsub MLClusterClassifier.pbs" | cat
