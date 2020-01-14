@@ -11,5 +11,4 @@
 echo "Started on `/bin/hostname`"
 ssh iw-dm-4 'cd ~/data/CichlidBowerTracker; module load anaconda3; conda activate CichlidBowerTracker; python3 CichlidBowerTracker.py ProjectAnalysis Download ${PROJECT_ID}'
 ssh login-s 'cd ~/scratch/${PROJECT_ID}/PBS; qsub DepthAnalysis.pbs'
-ssh login-s 'cd ~/scratch/${PROJECT_ID}/PBS; qsub ClusterAnalysis.pbs'
-
+ssh login-s 'cd ~/scratch/${PROJECT_ID}/PBS; first=$(qsub ClusterAnalysis.pbs); qsub -W depend=afterokarray:$first PostClusterAnalysis.pbs'
