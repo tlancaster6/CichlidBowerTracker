@@ -136,14 +136,12 @@ class ProjectPreparer():
 		subprocess.run(['rm', '-rf', self.projFileManager.localMasterDir])
 
 	def createUploadFile(self, uploads):
-		self.log.write(asctime() + ' -- Creating upload files for {}\n'.format(self.projectID))
 		with open(self.fileManager.localUploadDir + 'UploadData_' + str(datetime.datetime.now().timestamp()) + '.csv', 'w') as f:
 			print('Local,Cloud,Tar', file = f)
 			for upload in uploads:
 				print(upload[0] + ',' + upload[1] + ',' + str(upload[2]), file = f)
 
 	def createAnalysisUpdate(self, aType, procObj):
-		self.log.write(asctime() + ' -- creating {} type analysis update for {}\n'.format(aType, self.projectID))
 		now = datetime.datetime.now()
 		with open(self.fileManager.localAnalysisLogDir + 'AnalysisUpdate_' + str(now.timestamp()) + '.csv', 'w') as f:
 			print('ProjectID,Type,Version,Date', file = f)
