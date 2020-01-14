@@ -84,8 +84,8 @@ class FileManager():
 		tar_directory = directory[:-1] + '.tar'
 		subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir], stderr = subprocess.PIPE)
 		if os.path.exists(self.localMasterDir + tar_directory):
-			print(['tar', '-xvf', self.localMasterDir + tar_directory, '-C', self.localMasterDir])
-			subprocess.run(['tar', '-xvf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stderr = subprocess.PIPE)
+			print(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir])
+			subprocess.run(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stderr = subprocess.PIPE)
 			if not os.path.exists(self.localMasterDir + directory):
 				raise FileNotFoundError('Unable to untar ' + tar_directory)
 			else:
@@ -103,7 +103,7 @@ class FileManager():
 
 			directory1_path = '/'.join(directory1.split('/')[0:-1])
 
-			output = subprocess.run(['tar', '-cvf', directory1 + '.tar', '-C', directory1_path, directory1.split('/')[-1]], stderr = subprocess.PIPE)
+			output = subprocess.run(['tar', '-cf', directory1 + '.tar', '-C', directory1_path, directory1.split('/')[-1]], stderr = subprocess.PIPE)
 			command = ['rclone', 'copy', directory1 +'.tar', directory2]
 		else:
 			command = ['rclone', 'copy', directory1, directory2]

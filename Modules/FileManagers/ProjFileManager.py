@@ -228,8 +228,8 @@ class ProjFileManager:
 		tar_directory = directory[:-1] + '.tar'
 		output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 		if os.path.exists(self.localMasterDir + tar_directory):
-			print(['tar', '-xvf', self.localMasterDir + tar_directory, '-C', self.localMasterDir])
-			output = subprocess.run(['tar', '-xvf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+			print(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir])
+			output = subprocess.run(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 			if not os.path.exists(self.localMasterDir + directory):
 				raise FileNotFoundError('Unable to untar ' + tar_directory)
 			else:
@@ -245,7 +245,7 @@ class ProjFileManager:
 		if tar:
 			if directory[-1] == '/':
 				directory = directory[:-1]
-			output = subprocess.run(['tar', '-cvf', self.localMasterDir + directory + '.tar', '-C', self.localMasterDir, directory], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+			output = subprocess.run(['tar', '-cf', self.localMasterDir + directory + '.tar', '-C', self.localMasterDir, directory], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 			command = ['rclone', 'copy', self.localMasterDir + directory + '.tar', self.cloudMasterDir, '--exclude', '.DS_Store']
 		else:
 			command = ['rclone', 'copy', self.localMasterDir + directory, self.cloudMasterDir + directory, '--exclude', '.DS_Store']
