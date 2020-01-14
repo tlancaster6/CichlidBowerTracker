@@ -6,6 +6,7 @@ class ProjFileManager:
 		self.projectID = projectID
 		self.tempDir = tempDir
 
+		self.analysisLog = localMasterDir + 'Analysis.log'
 		self.localMasterDir = localMasterDir + projectID + '/'
 		self.cloudMasterDir = cloudMasterDir + projectID + '/'
 		
@@ -98,6 +99,7 @@ class ProjFileManager:
 		return videoObj
 
 	def _createFileDirectoryNames(self):
+
 		# Create logfile
 		self.logfile = 'Logfile.txt'
 		self.localLogfile = self.localMasterDir + self.logfile

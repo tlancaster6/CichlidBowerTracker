@@ -127,13 +127,17 @@ if args.command == 'TotalProjectAnalysis':
 
     if args.Computer == 'PACE':
         import spur, getpass
+        from time import localtime
         uname = input('Username: ')
         pword = getpass.getpass()
         datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
         r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
+        log = r6_shell.open('scratch/Analysis.log', 'a')
+        log.write(localtime() + ' -- Total Project Analysis Initiated for: {}'.format(', '.join(args.ProjectIDs)))
 
         print('Preparing for Analysis')
         for n, pid in enumerate(args.ProjectIDs):
+            log.write(localtime() + ' -- Copying {} PBS directory to PACE'.format(pid))
             cloudPbsDir = 'cichlidVideo:BioSci-McGrath/Apps/CichlidPiData/{0}/PBS'.format(pid)
             localPbsDir = 'scratch/{}/PBS'.format(pid)
 
@@ -142,6 +146,7 @@ if args.command == 'TotalProjectAnalysis':
                        'source activate CichlidBowerTracker;'
                        'rclone copy {1} {0};'.format(localPbsDir, cloudPbsDir))
             datamover_shell.run(['sh', '-c', command], encoding='utf-8')
+            log.write(localtime() + ' -- Modifying {} PBS files for chaining'.format(pid))
             if (n + 1) < len(args.ProjectIDs):
                 with r6_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
                     f.write('ssh login-s \'cd ~/scratch/{}/PBS; qsub Download.pbs\''.format(args.ProjectIDs[n+1]))
@@ -150,9 +155,10 @@ if args.command == 'TotalProjectAnalysis':
                     f.write('ssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'')
 
         print('Initiating Analysis')
+        log.write(localtime() + ' -- submitting Download script for {}'.format(args.ProjectIDs[0]))
         r6_shell.run(['qsub', 'Download.pbs'], cwd='scratch/' + args.ProjectIDs[0] + '/PBS', encoding='utf-8')
-
         print('Analysis Initiated. Safe to close local shell')
+        log.close()
 
     else:
         f = open('Analysis.log', 'w')
