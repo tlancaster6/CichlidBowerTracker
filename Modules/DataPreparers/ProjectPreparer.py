@@ -33,11 +33,13 @@ class ProjectPreparer():
 	def runPrepAnalysis(self, pbs_only, email=None):
 		self.fileManager.createDirs()
 		self.projFileManager.downloadData('Prep')
-		prp_obj = PrP(self.projFileManager)
-		prp_obj.validateInputData()
-		prp_obj.prepData()
-		self.createUploadFile(prp_obj.uploads)
-		self.createAnalysisUpdate('Prep', prp_obj)
+
+		if not pbs_only:
+			prp_obj = PrP(self.projFileManager)
+			prp_obj.validateInputData()
+			prp_obj.prepData()
+			self.createUploadFile(prp_obj.uploads)
+			self.createAnalysisUpdate('Prep', prp_obj)
 
 		print('prepping PBS scripts')
 		pbs_obj = PBS(self.projFileManager, self.workers, email)
