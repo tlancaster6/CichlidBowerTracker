@@ -1,4 +1,5 @@
 import datetime, os, subprocess
+from time import localtime
 
 from Modules.FileManagers.FileManager import FileManager as FM
 from Modules.DataPreparers.PrepPreparer import PrepPreparer as PrP
@@ -19,9 +20,11 @@ class ProjectPreparer():
 		self.tempDir = tempDir
 		self.fileManager = FM()
 		self.projFileManager = self.fileManager.retProjFileManager(projectID, tempDir)
-		self.mlFileManager = self.fileManager.retMLFileManager() 
+		self.mlFileManager = self.fileManager.retMLFileManager()
+		self.log = open(self.projFileManager.analysisLog, 'a')
 
 	def downloadData(self, dtype):
+		self.log.write(localtime() + ' -- Downloading Data for {}'.format(self.projectID))
 		self.fileManager.createDirs()
 		self.projFileManager.downloadData(dtype)
 		if dtype in ['Download', 'MLClassification']:
@@ -47,6 +50,7 @@ class ProjectPreparer():
 		#self.localDelete()
 
 	def runDepthAnalysis(self):
+		self.log.write(localtime() + ' -- Running Depth Analysis for {}'.format(self.projectID))
 		dp_obj = DP(self.projFileManager, self.workers)
 		dp_obj.validateInputData()
 		dp_obj.createSmoothedArray()
@@ -55,6 +59,7 @@ class ProjectPreparer():
 		self.createAnalysisUpdate('Depth', dp_obj)
 
 	def runClusterAnalysis(self, videoIndex):
+		self.log.write(localtime() + ' -- Running Cluster Analysis for {0}, video {1}'.format(self.projectID, videoIndex))
 		cp_obj = CP(self.projFileManager, self.workers, videoIndex)
 		cp_obj.validateInputData()
 		cp_obj.runClusterAnalysis()
@@ -69,6 +74,7 @@ class ProjectPreparer():
 
 
 	def runMLClusterClassifier(self):
+		self.log.write(localtime() + ' -- Running ML Classification for {}'.format(self.projectID))
 		mlc_obj = MLP(self.projFileManager, self.mlFileManager)
 		mlc_obj.validateInputData()
 		mlc_obj.predictVideoLabels()
@@ -80,6 +86,7 @@ class ProjectPreparer():
 		pass
 
 	def runFiguresCreation(self):
+		self.log.write(localtime() + ' -- Running figure creation for {}'.format(self.projectID))
 		fc_obj = FP(self.projFileManager)
 		fc_obj.validateInputData()
 		fc_obj.createAllFigures()
@@ -93,11 +100,13 @@ class ProjectPreparer():
 		lc_obj.validateInputData()
 
 	def parseOutfiles(self):
+		self.log.write(localtime() + ' -- Parsing outfiles for {}'.format(self.projectID))
 		op_obj = OP(self.projFileManager)
 		op_obj.validateInputData()
 		op_obj.parseOutfiles()
 
 	def backupAnalysis(self):
+		self.log.write(localtime() + ' -- Backing up analysis for {}'.format(self.projectID))
 		uploadCommands = set()
 
 		uploadFiles = [x for x in os.listdir(self.fileManager.localUploadDir) if 'UploadData' in x]
@@ -121,15 +130,18 @@ class ProjectPreparer():
 		subprocess.run(['rm', '-rf', self.projFileManager.localMasterDir])
 
 	def localDelete(self):
+		self.log.write(localtime() + ' -- Deleting local files for {}'.format(self.projectID))
 		subprocess.run(['rm', '-rf', self.projFileManager.localMasterDir])
 
 	def createUploadFile(self, uploads):
+		self.log.write(localtime() + ' -- Creating upload files for {}'.format(self.projectID))
 		with open(self.fileManager.localUploadDir + 'UploadData_' + str(datetime.datetime.now().timestamp()) + '.csv', 'w') as f:
 			print('Local,Cloud,Tar', file = f)
 			for upload in uploads:
 				print(upload[0] + ',' + upload[1] + ',' + str(upload[2]), file = f)
 
 	def createAnalysisUpdate(self, aType, procObj):
+		self.log.write(localtime() + ' -- creating {} type analysis update for {}'.format(aType, self.projectID))
 		now = datetime.datetime.now()
 		with open(self.fileManager.localAnalysisLogDir + 'AnalysisUpdate_' + str(now.timestamp()) + '.csv', 'w') as f:
 			print('ProjectID,Type,Version,Date', file = f)
