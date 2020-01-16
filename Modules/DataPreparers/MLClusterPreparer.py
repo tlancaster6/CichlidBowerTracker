@@ -57,7 +57,6 @@ class MLClusterPreparer:
 				os.makedirs(outDirectory)
 
 				outdata = subprocess.run(['ffmpeg', '-i', self.projFileManager.localAllClipsDir + clip, outDirectory + 'image_%05d.jpg', '-nostdin', '-loglevel', 'error'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-				print(outdata.stdout)
 				#print(['ffmpeg', '-i', self.projFileManager.localAllClipsDir + clip, outDirectory + 'image_%05d.jpg'])
 
 				frames = [x for x in os.listdir(outDirectory) if '.jpg' in x]
