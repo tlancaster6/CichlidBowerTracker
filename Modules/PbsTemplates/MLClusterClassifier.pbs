@@ -11,6 +11,6 @@ cd ~/data/CichlidBowerTracker
 echo "Started on `/bin/hostname`"
 module load anaconda3
 source activate CichlidBowerTracker
-python3 CichlidBowerTracker.py ProjectAnalysis MLClassification ${PROJECT_ID} -w 8 -t ${TMPDIR} | cat
+python3 CichlidBowerTracker.py ProjectAnalysis MLClassification ${PROJECT_ID} -w 8 -t ${TMPDIR}
 
-ssh login-s "cd ~/scratch/${PROJECT_ID}/PBS; qsub FigurePreparer.pbs" | cat
+ssh login-s "cd ~/scratch/${PROJECT_ID}/PBS; qsub FigurePreparer.pbs"
