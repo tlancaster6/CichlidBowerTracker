@@ -28,6 +28,7 @@ class ClusterAnalyzer:
             line = next(f)
             tray = line.rstrip().split(',')
             self.tray_r = [int(x) for x in tray]
+        self.cropped_dims = [self.tray_r[2] - self.tray_r[0], self.tray_r[3] - self.tray_r[1]]
 
     def _appendDepthCoordinates(self):
         # adds columns containing X and Y in depth coordinates to all cluster csv
@@ -54,10 +55,10 @@ class ClusterAnalyzer:
         if columns is not None:
             df_slice = df_slice[columns]
         if cropped:
-            df_slice = df_slice[(df_slice.X_depth > self.tray_r[1]) & (df_slice.X_depth < self.tray_r[3]) &
-                                (df_slice.Y_depth > self.tray_r[0]) & (df_slice.Y_depth < self.tray_r[2])]
-            df_slice.X_depth = df_slice.X_depth - self.tray_r[1]
-            df_slice.Y_depth = df_slice.Y_depth - self.tray_r[0]
+            df_slice = df_slice[(df_slice.X_depth > self.tray_r[0]) & (df_slice.X_depth < self.tray_r[2]) &
+                                (df_slice.Y_depth > self.tray_r[1]) & (df_slice.Y_depth < self.tray_r[3])]
+            df_slice.X_depth = df_slice.X_depth - self.tray_r[0]
+            df_slice.Y_depth = df_slice.Y_depth - self.tray_r[1]
         return df_slice
 
     def returnClusterCounts(self, t0, t1, bid='all', cropped=False):
@@ -75,9 +76,9 @@ class ClusterAnalyzer:
     def returnClusterKDE(self, t0, t1, bid, cropped=False, bandwidth=10.0):
         df_slice = self.sliceDataframe(t0=t0, t1=t1, bid=bid, cropped=cropped, columns=['X_depth', 'Y_depth'])
         n_events = len(df_slice.index)
-        x_bins = int(self.tray_r[3] - self.tray_r[1])
-        y_bins = int(self.tray_r[2] - self.tray_r[0])
-        yy, xx = np.mgrid[0:y_bins, 0:x_bins]
+        x_bins = int(self.tray_r[2] - self.tray_r[0])
+        y_bins = int(self.tray_r[3] - self.tray_r[1])
+        xx, yy = np.mgrid[0:x_bins, 0:y_bins]
         if n_events == 0:
             z = np.zeros_like(xx)
         else:

@@ -179,17 +179,17 @@ class FigurePreparer:
 		fig.suptitle(self.lp_obj.projectID + ' Daily Cluster Distributions')
 		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
 		df_cropped = self.ca_obj.sliceDataframe(cropped=True)
-		x_limits = (df_cropped.X_depth.min(), df_cropped.X_depth.max())
-		y_limits = (df_cropped.Y_depth.max(), df_cropped.Y_depth.min())
+		x_limits = (self.ca_obj.cropped_dims[0], 0)
+		y_limits = (0, self.ca_obj.cropped_dims[1])
 		for i in range(self.lp_obj.numDays):
 			t1 = t0 + datetime.timedelta(hours=24)
 			df_slice = self.ca_obj.sliceDataframe(t0=t0, t1=t1, input_frame=df_cropped)
 			for j, bid in enumerate(self.ca_obj.bids):
 				df_slice_slice = self.ca_obj.sliceDataframe(input_frame=df_slice, bid=bid)
-				sns.scatterplot(x='X_depth', y='Y_depth', data=df_slice_slice, ax=axes[j, i], s=10,
+				sns.scatterplot(x='Y_depth', y='X_depth', data=df_slice_slice, ax=axes[j, i], s=10,
 								linewidth=0, alpha=0.1)
 				axes[j, i].tick_params(colors=[0, 0, 0, 0])
-				axes[j, i].set(xlabel=None, ylabel=None, aspect='equal', xlim=x_limits, ylim=y_limits)
+				axes[j, i].set(xlabel=None, ylabel=None, aspect='equal', xlim=y_limits, ylim=x_limits)
 				if j == 0:
 					axes[0, i].set_title('day %i' % (i + 1))
 				if i == 0:
@@ -239,7 +239,7 @@ class FigurePreparer:
 
 		# plot overlap of daily bower regions identified from depth and cluster data
 		fig, axes = plt.subplots(3, self.lp_obj.numDays, figsize=(1.5 * self.lp_obj.numDays, 6))
-		fig.suptitle(self.lp_obj.projectID + ' Bower Identification Consistency')
+		fig.suptitle(self.lp_obj.projectID + ' Daily Bower Identification Consistency')
 		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
 		for i in range(self.lp_obj.numDays):
 			t1 = t0 + datetime.timedelta(hours=24)
@@ -293,7 +293,64 @@ class FigurePreparer:
 		cbar.set_ticks([-1, 1])
 		cbar.set_ticklabels(['Y', 'N'])
 
-		fig.savefig(self.projFileManager.localFiguresDir + 'BowerIdentificationConsistency.pdf')
+		fig.savefig(self.projFileManager.localFiguresDir + 'DailyBowerIdentificationConsistency.pdf')
+		plt.close(fig=fig)
+
+		# create figure of whole-trial bower identification overlap
+
+		fig, axes = plt.subplots(3, 1, figsize=(2, 6))
+		fig.suptitle(self.lp_obj.projectID + ' Whole-Trial Bower Identification Consistency')
+		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
+		t1 = t0 + (self.lp_obj.numDays * datetime.timedelta(hours=24))
+
+		depth_bowers = self.da_obj.returnBowerLocations(t0, t1, denoise=True, cropped=True)
+		axes[0].imshow(depth_bowers, cmap='viridis', vmin=-1, vmax=1)
+		axes[0].set(xlabel=None, ylabel=None, aspect='equal')
+		axes[0].tick_params(colors=[0, 0, 0, 0])
+
+		cluster_bowers = self.ca_obj.returnBowerLocations(t0, t1, denoise=True, cropped=True)
+		axes[1].imshow(cluster_bowers, cmap='viridis', vmin=-1, vmax=1)
+		axes[1].set(xlabel=None, ylabel=None, aspect='equal')
+		axes[1].tick_params(colors=[0, 0, 0, 0])
+
+		bower_intersection = np.where((depth_bowers == cluster_bowers) & (depth_bowers != 0), True, False)
+		bower_intersection_area = np.count_nonzero(bower_intersection)
+		bower_union = np.where((depth_bowers != 0) | (cluster_bowers != 0), True, False)
+		bower_union_area = np.count_nonzero(bower_union)
+		if bower_intersection_area == bower_union_area == 0:
+			similarity = 1.0
+		elif (bower_intersection_area == 0) | (bower_union_area == 0):
+			similarity = 0.0
+		else:
+			similarity = bower_intersection_area / bower_union_area
+
+		axes[2].imshow(-1 *((2 * bower_intersection) - bower_union), cmap='bwr', vmin=-1, vmax=1)
+		axes[2].set(xlabel='J = {0:.3f}'.format(similarity), ylabel=None, aspect='equal')
+		axes[2].tick_params(colors=[0, 0, 0, 0])
+
+		axes[0].set_ylabel('Depth Bowers')
+		axes[1].set_ylabel('Cluster Bowers')
+		axes[2].set_ylabel('Overlap')
+
+		cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-1, vmax=1), cmap=cm.get_cmap('viridis', 3)),
+							ax=axes[0], shrink=0.7)
+		cbar.set_label('bower region')
+		cbar.set_ticks([-1, 0, 1])
+		cbar.set_ticklabels(['-', '0', '+'])
+
+		cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-1, vmax=1), cmap=cm.get_cmap('viridis', 3)),
+							ax=axes[1], shrink=0.7)
+		cbar.set_label('bower region')
+		cbar.set_ticks([-1, 0, 1])
+		cbar.set_ticklabels(['-', '0', '+'])
+
+		cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-1, vmax=1), cmap=cm.get_cmap('bwr', 3)),
+							ax=axes[2], shrink=0.7)
+		cbar.set_label('Labels Agree?')
+		cbar.set_ticks([-1, 1])
+		cbar.set_ticklabels(['Y', 'N'])
+
+		fig.savefig(self.projFileManager.localFiguresDir + 'WholeTrialBowerIdentificationConsistency.pdf')
 		plt.close(fig=fig)
 
 	def createAllFigures(self, hourlyDelta=2):
