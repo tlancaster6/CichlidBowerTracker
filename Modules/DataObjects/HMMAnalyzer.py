@@ -68,7 +68,7 @@ class HMMAnalyzer:
 		while True:
 			count += 1
 			# Update indices for those that need it
-			indices[start_data[:,1] < stop] += 1
+			indices[start_data[:, 1] < stop] += 1
 			new_data = self.data[indices]
 			diffs = np.abs(new_data[:,2] - start_data[:,2])
 			if np.max(diffs) == 0:
