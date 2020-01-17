@@ -96,14 +96,14 @@ class FileManager():
 			if not os.path.exists(self.localMasterDir + directory):
 				raise FileNotFoundError('Unable to download ' + directory + ' from ' + self.cloudMasterDir)
 
-	def uploadData(self, directory1, directory2, tar = False):
+	def uploadData(self, directory1, directory2, tar=False):
 		if tar:
 			if directory1[-1] == '/':
 				directory1 = directory1[:-1]
 
 			directory1_path = '/'.join(directory1.split('/')[0:-1])
 
-			output = subprocess.run(['tar', '-cf', directory1 + '.tar', '-C', directory1_path, directory1.split('/')[-1]], stderr = subprocess.PIPE)
+			output = subprocess.run(['tar', '-cf', directory1 + '.tar', '-C', directory1_path, directory1.split('/')[-1]], stderr=subprocess.PIPE)
 			command = ['rclone', 'copy', directory1 +'.tar', directory2]
 		else:
 			command = ['rclone', 'copy', directory1, directory2]
@@ -112,5 +112,3 @@ class FileManager():
 		if output.stderr != '':
 			print(command)
 			print(output.stderr)
-			pdb.set_trace()
-			raise Exception('rclone was not able to sync ' + directory1)
