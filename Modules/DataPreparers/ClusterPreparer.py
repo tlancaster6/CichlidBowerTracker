@@ -11,7 +11,7 @@ class ClusterPreparer():
 	# 3. Automatically identifies bower location
 	# 4. Analyze building, shape, and other pertinent info of the bower
 
-	def __init__(self, projFileManager, workers, videoIndex = None):
+	def __init__(self, projFileManager, workers, videoIndex=None):
 
 		self.__version__ = '1.0.0'
 

@@ -50,7 +50,7 @@ class ClusterAnalyzer:
             self._checkTimes(t0, t1)
             df_slice = df_slice[t0:t1]
         if bid is not None:
-            df_slice = df_slice[df_slice.Model18_All_pred == bid]
+            df_slice = df_slice[df_slice.Model18_All_pred.isin(bid if type(bid) is list else [bid])]
         if columns is not None:
             df_slice = df_slice[columns]
         if cropped:

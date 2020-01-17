@@ -234,8 +234,6 @@ class FigurePreparer:
 		fig.savefig(self.projFileManager.localFiguresDir + 'DailyScoopSpitDensities.pdf')
 		plt.close(fig=fig)
 
-
-
 	def _createCombinedFigures(self):
 		# create figures based on a combination of cluster and depth data
 
