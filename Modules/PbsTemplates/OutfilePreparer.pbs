@@ -13,5 +13,4 @@ echo "Started on `/bin/hostname`"
 module load anaconda3
 source activate CichlidBowerTracker
 python3 CichlidBowerTracker.py ProjectAnalysis Outfiles ${PROJECT_ID} -w 1
-
 ssh login-s 'cd ~/scratch/${PROJECT_ID}/PBS; qsub Backup.pbs'
