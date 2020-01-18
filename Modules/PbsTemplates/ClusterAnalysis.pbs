@@ -16,3 +16,15 @@ echo "Started on `/bin/hostname`"
 module load anaconda3
 source activate CichlidBowerTracker
 python3 CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w ${WORKERS} -v ${PBS_ARRAYID} -t ${TMPDIR}
+RC=$?
+if [ $RC -ne 0 ]; then
+    qrerun ${PBS_JOBID}[${PBS_ARRAYID}]
+    RC=$?
+    if [ $RC -eq 0 ]; then
+        echo "Cluster analysis ${PBS_ARRAYID} exited with code ${RC}. Retrying"
+        qalter -r n ${PBS_JOBID}[${PBS_ARRAYID}]
+    else
+        echo "Cluster analysis ${PBS_ARRAYID} rerun failed. Halting ${PROJECT_ID}"
+        ssh login-s 'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs'
+    fi
+fi
