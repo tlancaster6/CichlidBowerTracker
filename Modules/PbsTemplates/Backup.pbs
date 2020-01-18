@@ -9,5 +9,6 @@
 #PBS -m abe
 
 echo "Started on `/bin/hostname`"
-ssh iw-dm-4 'cd ~/data/CichlidBowerTracker; module load anaconda3; conda activate CichlidBowerTracker; python3 CichlidBowerTracker.py ProjectAnalysis Backup ${PROJECT_ID}'
 ssh login-s 'cd ~/scratch/${PROJECT_ID}/PBS; qsub Next.pbs'
+ssh iw-dm-4 'cd ~/data/CichlidBowerTracker; module load anaconda3; conda activate CichlidBowerTracker; python3 CichlidBowerTracker.py ProjectAnalysis Backup ${PROJECT_ID}'
+
