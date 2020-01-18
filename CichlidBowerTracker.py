@@ -149,10 +149,10 @@ if args.command == 'TotalProjectAnalysis':
             datamover_shell.run(['sh', '-c', command], encoding='utf-8')
             log.write(asctime() + ' -- Modifying {} PBS files for chaining\n'.format(pid))
             if (n + 1) < len(args.ProjectIDs):
-                with r6_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
+                with r6_shell.open(localPbsDir + '/Next.pbs', 'a') as f:
                     f.write('ssh login-s \'cd ~/scratch/{}/PBS; qsub Download.pbs\''.format(args.ProjectIDs[n+1]))
             else:
-                with r6_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
+                with r6_shell.open(localPbsDir + '/Next.pbs', 'a') as f:
                     f.write('ssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'')
 
         print('Initiating Analysis')

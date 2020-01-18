@@ -1,0 +1,9 @@
+#PBS -N ${PROJECT_ID}_Next
+#PBS -l nodes=1:ppn=1
+#PBS -l feature=intel
+#PBS -l walltime=10:00
+#PBS -q iw-shared-6
+#PBS -j oe
+#PBS -o ../Troubleshooting/Next.out
+#PBS -M ${EMAIL}
+#PBS -m abe
