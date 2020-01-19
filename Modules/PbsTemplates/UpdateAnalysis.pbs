@@ -5,8 +5,6 @@
 #PBS -q iw-shared-6
 #PBS -j oe
 #PBS -o ../Troubleshooting/UpdateAnalysis.out
-#PBS -M ${EMAIL}
-#PBS -m abe
 
 echo "Started on `/bin/hostname`"
 ssh iw-dm-4 'cd ~/data/CichlidBowerTracker; module load anaconda3; conda activate CichlidBowerTracker; python3 CichlidBowerTracker.py UpdateAnalysisSummary'
