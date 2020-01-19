@@ -22,7 +22,7 @@ if [ $RC -ne 0 ]; then
     RC=$?
     if [ $RC -eq 0 ]; then
         echo "Cluster analysis ${PBS_ARRAYID} exited with code ${RC}. Retrying"
-        qalter -r n ${PBS_JOBID}[${PBS_ARRAYID}]
+        qalter -r n ${PBS_JOBID}
     else
         echo "Cluster analysis ${PBS_ARRAYID} rerun failed. Halting ${PROJECT_ID}"
         ssh login-s "cd ~/scratch/${PROJECT_ID}/PBS; qsub Next.pbs"
