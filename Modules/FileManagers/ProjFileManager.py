@@ -172,9 +172,9 @@ class ProjFileManager:
 		self.totalDepthThreshold = 1.0   # cm
 
 		# Cluster related parameters
-		self.hourlyClusterThreshold = 0.5  # events/cm^2
-		self.dailyClusterThreshold = 1.0   # events/cm^2
-		self.totalClusterThreshold = 2.5   # events/cm^2
+		self.hourlyClusterThreshold = 1.0  # events/cm^2
+		self.dailyClusterThreshold = 2.0   # events/cm^2
+		self.totalClusterThreshold = 5.0   # events/cm^2
 
 		# Parameters related to cluster and depth
 		self.hourlyMinPixels = 1000
