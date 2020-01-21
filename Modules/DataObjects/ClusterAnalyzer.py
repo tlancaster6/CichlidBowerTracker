@@ -4,9 +4,6 @@ from sklearn.neighbors import KernelDensity
 from skimage import morphology
 import datetime
 import sys
-from skimage.morphology import binary_opening as opening
-from skimage.morphology import binary_closing as closing
-from skimage.morphology import disk
 from Modules.DataObjects.LogParser import LogParser as LP
 
 

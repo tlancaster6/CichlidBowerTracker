@@ -4,9 +4,6 @@ from skimage import morphology
 from types import SimpleNamespace
 import datetime
 import sys
-from skimage.morphology import binary_opening as opening
-from skimage.morphology import binary_closing as closing
-from skimage.morphology import disk
 
 np.warnings.filterwarnings('ignore')
 
