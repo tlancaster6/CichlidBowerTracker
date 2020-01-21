@@ -9,9 +9,9 @@ from Modules.DataPreparers.PrepPreparer import PrepPreparer as PrP
 # prp_obj.validateInputData()
 # prp_obj.prepData()
 
-projFileManager = FM().retProjFileManager('TI2_5_newtray')
+projFileManager = FM().retProjFileManager('MC6_5')
 fp_obj = FP(projFileManager)
-fp_obj.createAllFigures()
+fp_obj._createCombinedFigures()
 
 # t0 = ca_obj.lp_obj.frames[0].time
 # t1 = ca_obj.lp_obj.frames[-1].time

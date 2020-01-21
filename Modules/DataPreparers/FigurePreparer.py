@@ -127,7 +127,8 @@ class FigurePreparer:
 					current_ax.set_title(str(j * hourlyDelta) + '-' + str((j + 1) * hourlyDelta))
 
 			current_ax = figHourly.add_subplot(gridHourly[i, -2])
-			current_ax.imshow(self.da_obj.returnBowerLocations(stop - datetime.timedelta(hours=24), stop, cropped=True, denoise=True), vmin=-v, vmax=v)
+			current_ax.imshow(self.da_obj.returnBowerLocations(stop - datetime.timedelta(hours=24), stop, cropped=True),
+							  vmin=-v, vmax=v)
 			current_ax.set_adjustable('box')
 			current_ax.tick_params(colors=[0, 0, 0, 0])
 			if i == 0:
@@ -217,7 +218,7 @@ class FigurePreparer:
 			if np.max(np.abs(z)) > vmax:
 				vmax = np.max(np.abs(z))
 				cbar_reference = im
-			bowers = self.ca_obj.returnBowerLocations(t0, t1, denoise=True, cropped=True)
+			bowers = self.ca_obj.returnBowerLocations(t0, t1, cropped=True)
 			axes[1, i].imshow(bowers, cmap='viridis', vmin=-1, vmax=1)
 			axes[1, i].set(xlabel=None, ylabel=None, aspect='equal')
 			axes[1, i].tick_params(colors=[0, 0, 0, 0])
@@ -244,12 +245,12 @@ class FigurePreparer:
 		for i in range(self.lp_obj.numDays):
 			t1 = t0 + datetime.timedelta(hours=24)
 
-			depth_bowers = self.da_obj.returnBowerLocations(t0, t1, denoise=True, cropped=True)
+			depth_bowers = self.da_obj.returnBowerLocations(t0, t1, cropped=True)
 			axes[0, i].imshow(depth_bowers, cmap='viridis', vmin=-1, vmax=1)
 			axes[0, i].set(xlabel=None, ylabel=None, aspect='equal')
 			axes[0, i].tick_params(colors=[0, 0, 0, 0])
 
-			cluster_bowers = self.ca_obj.returnBowerLocations(t0, t1, denoise=True, cropped=True)
+			cluster_bowers = self.ca_obj.returnBowerLocations(t0, t1, cropped=True)
 			axes[1, i].imshow(cluster_bowers, cmap='viridis', vmin=-1, vmax=1)
 			axes[1, i].set(xlabel=None, ylabel=None, aspect='equal')
 			axes[1, i].tick_params(colors=[0, 0, 0, 0])
@@ -303,12 +304,12 @@ class FigurePreparer:
 		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
 		t1 = t0 + (self.lp_obj.numDays * datetime.timedelta(hours=24))
 
-		depth_bowers = self.da_obj.returnBowerLocations(t0, t1, denoise=True, cropped=True)
+		depth_bowers = self.da_obj.returnBowerLocations(t0, t1, cropped=True)
 		axes[0].imshow(depth_bowers, cmap='viridis', vmin=-1, vmax=1)
 		axes[0].set(xlabel=None, ylabel=None, aspect='equal')
 		axes[0].tick_params(colors=[0, 0, 0, 0])
 
-		cluster_bowers = self.ca_obj.returnBowerLocations(t0, t1, denoise=True, cropped=True)
+		cluster_bowers = self.ca_obj.returnBowerLocations(t0, t1, cropped=True)
 		axes[1].imshow(cluster_bowers, cmap='viridis', vmin=-1, vmax=1)
 		axes[1].set(xlabel=None, ylabel=None, aspect='equal')
 		axes[1].tick_params(colors=[0, 0, 0, 0])

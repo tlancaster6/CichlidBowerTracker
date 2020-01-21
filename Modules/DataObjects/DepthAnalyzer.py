@@ -38,7 +38,7 @@ class DepthAnalyzer():
 			self.smoothDepthData[:,:,:self.tray_r[1]] = np.nan
 			self.smoothDepthData[:,:,self.tray_r[3]:] = np.nan
 
-	def returnBowerLocations(self, t0, t1, cropped=False, denoise=False):
+	def returnBowerLocations(self, t0, t1, cropped=False):
 		# Returns 2D numpy array using thresholding and minimum size data to identify bowers
 		# Pits = -1, Castle = 1, No bower = 0
 		# threshold and min pixels will be automatically determined if not supplied
@@ -55,25 +55,17 @@ class DepthAnalyzer():
 		if timeChange.total_seconds() < 7300:  # 2 hours or less
 			totalThreshold = self.projFileManager.hourlyDepthThreshold
 			minPixels = self.projFileManager.hourlyMinPixels
-			denoiseRadius = self.projFileManager.hourlyDenoiseRadius
 		elif timeChange.total_seconds() < 129600:  # 2 hours to 1.5 days
 			totalThreshold = self.projFileManager.dailyDepthThreshold
 			minPixels = self.projFileManager.dailyMinPixels
-			denoiseRadius = self.projFileManager.dailyDenoiseRadius
-
 		else:  # 1.5 days or more
 			totalThreshold = self.projFileManager.totalDepthThreshold
 			minPixels = self.projFileManager.totalMinPixels
-			denoiseRadius = self.projFileManager.totalDenoiseRadius
 
 		tCastle = np.where(totalHeightChange >= totalThreshold, True, False)
-		if denoise:
-			tCastle = closing(opening(tCastle, disk(denoiseRadius)), disk(denoiseRadius))
 		tCastle = morphology.remove_small_objects(tCastle, minPixels).astype(int)
 
 		tPit = np.where(totalHeightChange <= -1 * totalThreshold, True, False)
-		if denoise:
-			tPit = closing(opening(tPit, disk(denoiseRadius)), disk(denoiseRadius))
 		tPit = morphology.remove_small_objects(tPit, minPixels).astype(int)
 
 		bowers = tCastle - tPit
@@ -126,7 +118,7 @@ class DepthAnalyzer():
 		change = self.smoothDepthData[first_index] - self.smoothDepthData[last_index]
 		
 		if masked:
-			change[self.returnBowerLocations(t0, t1, denoise=True) == 0] = 0
+			change[self.returnBowerLocations(t0, t1) == 0] = 0
 
 		if cropped:
 			change = change[self.tray_r[0]:self.tray_r[2],self.tray_r[1]:self.tray_r[3]]
@@ -140,7 +132,7 @@ class DepthAnalyzer():
 		pixelLength = self.projFileManager.pixelLength
 		bowerIndex_pixels = int(self.goodPixels*self.projFileManager.bowerIndexFraction)
 
-		bowerLocations = self.returnBowerLocations(t0, t1, denoise=True)
+		bowerLocations = self.returnBowerLocations(t0, t1)
 		heightChange = self.returnHeightChange(t0, t1)
 		heightChangeAbs = heightChange.copy()
 		heightChangeAbs = np.abs(heightChangeAbs)

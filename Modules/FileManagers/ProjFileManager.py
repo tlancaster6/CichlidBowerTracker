@@ -177,13 +177,11 @@ class ProjFileManager:
 		self.totalClusterThreshold = 5.0   # events/cm^2
 
 		# Parameters related to cluster and depth
+		self.pixelLength = 0.1030168618  # cm / pixel
 		self.hourlyMinPixels = 1000
 		self.dailyMinPixels = 1000
 		self.totalMinPixels = 1000
-		self.hourlyDenoiseRadius = 5
-		self.dailyDenoiseRadius = 5
-		self.totalDenoiseRadius = 5
-		self.pixelLength = 0.1030168618 # cm / pixel
+		self.kdeBandwidth = 3.0
 		self.bowerIndexFraction = 0.1
 
 		# Video related parameters
