@@ -47,7 +47,6 @@ class ProjectPreparer():
 		pbs_obj.createPBS()
 		self.createUploadFile(pbs_obj.uploads)
 		self.createAnalysisUpdate('PacePrep', pbs_obj)
-
 		self.backupAnalysis()
 		#self.localDelete()
 

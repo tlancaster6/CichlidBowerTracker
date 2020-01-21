@@ -23,8 +23,8 @@ prepParser.add_argument('-t', '--TempDir', type=str,
                         help='Optional. Manually designate the temp directory. Default is LSS, the local scratch storage on PACE',
                         default='LSS')
 prepParser.add_argument('-m', '--Email', type=str,
-                            help='Optional. Enter an email that will receive updates during PACE analysis',
-                            default=None)
+                        help='Optional. Enter an email that will receive updates during PACE analysis',
+                        default=None)
 prepParser.add_argument('-P', '--PbsOnly', action='store_true', help='Optional. Use to skip all portions of prep except the PBS script generation and uploading')
 
 projectParser = subparsers.add_parser('ProjectAnalysis',
