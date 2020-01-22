@@ -18,14 +18,12 @@ source activate CichlidBowerTracker
 python3 CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w ${WORKERS} -v ${PBS_ARRAYID} -t ${TMPDIR}
 RC=$?
 if [ $RC -ne 0 ]; then
-    qrerun ${PBS_JOBID}
+    echo "Cluster analysis ${PBS_ARRAYID} exited with code ${RC}. Retrying"
+    python3 CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w ${WORKERS} -v ${PBS_ARRAYID} -t ${TMPDIR}
     RC=$?
-    if [ $RC -eq 0 ]; then
-        echo "Cluster analysis ${PBS_ARRAYID} exited with code ${RC}. Retrying"
-        qalter -r n ${PBS_JOBID}
-    else
-        echo "Cluster analysis ${PBS_ARRAYID} rerun failed. Halting ${PROJECT_ID}"
-        ssh login-s "cd ~/scratch/${PROJECT_ID}/PBS; qsub Next.pbs"
-        exit 1
-    fi
+fi
+if [ $RC -ne 0 ]; then
+    echo "Cluster analysis ${PBS_ARRAYID} rerun failed. Halting ${PROJECT_ID}"
+    ssh login-s "cd ~/scratch/${PROJECT_ID}/PBS; qsub -W depend=afternotok:{PBS_JOBID} Next.pbs"
+    qselect -u ${USER} -s R|xargs qdel
 fi

@@ -1,4 +1,4 @@
-#PBS -N ${PROJECT_ID}_Next
+#PBS -N Next
 #PBS -l nodes=1:ppn=1
 #PBS -l feature=intel
 #PBS -l walltime=10:00
