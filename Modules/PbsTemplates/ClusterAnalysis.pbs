@@ -26,5 +26,6 @@ if [ $RC -ne 0 ]; then
     else
         echo "Cluster analysis ${PBS_ARRAYID} rerun failed. Halting ${PROJECT_ID}"
         ssh login-s "cd ~/scratch/${PROJECT_ID}/PBS; qsub Next.pbs"
+        exit 1
     fi
 fi
