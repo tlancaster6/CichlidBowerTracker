@@ -24,6 +24,7 @@ if [ $RC -ne 0 ]; then
 fi
 if [ $RC -ne 0 ]; then
     echo "Cluster analysis ${PBS_ARRAYID} rerun failed. Halting ${PROJECT_ID}"
+    qselect -u ${USER} -s H|xargs qdel
     ssh login-s "cd ~/scratch/${PROJECT_ID}/PBS; qsub -W depend=afternotok:${PBS_JOBID} Next.pbs"
     qselect -u ${USER} -s R|xargs qdel
 fi
