@@ -12,7 +12,6 @@ class ProjFileManager:
 		
 		self._createFileDirectoryNames()		
 		self._createParameters()
-		self._identifyNodeType()
 
 	def downloadData(self, dtype):
 
@@ -218,7 +217,8 @@ class ProjFileManager:
 		if cloudMasterDir is None:
 			cloudMasterDir = self.cloudMasterDir
 
-		subprocess.run(['rclone', 'copy', cloudMasterDir + dfile, localMasterDir], stderr = subprocess.PIPE)
+		output = subprocess.run(['rclone', 'copy', cloudMasterDir + dfile, localMasterDir], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+		print(output.stdout)
 		if not os.path.exists(localMasterDir + dfile):
 			raise FileNotFoundError('Unable to download ' + dfile + ' from ' + self.cloudMasterDir)
 
@@ -227,14 +227,17 @@ class ProjFileManager:
 		# First try to download tarred Directory
 		tar_directory = directory[:-1] + '.tar'
 		check_code = subprocess.run(['rclone', 'check', self.cloudMasterDir + tar_directory, self.localMasterDir + tar_directory], stderr=subprocess.PIPE, stdout=subprocess.PIPE).returncode
-		output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+		output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir],stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+		print(output.stdout)
 		if os.path.exists(self.localMasterDir + tar_directory) and (check_code != 0):
-			output = subprocess.run(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+			output = subprocess.run(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+			print(output.stdout)
 			if not os.path.exists(self.localMasterDir + directory):
 				raise FileNotFoundError('Unable to untar ' + tar_directory)
 
 		else:
-			output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + directory, self.localMasterDir + directory], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+			output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + directory, self.localMasterDir + directory],stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+			print(output.stdout)
 			if not os.path.exists(self.localMasterDir + directory):
 				raise FileNotFoundError('Unable to download ' + directory + ' from ' + self.cloudMasterDir)
 
@@ -243,29 +246,12 @@ class ProjFileManager:
 		if tar:
 			if directory[-1] == '/':
 				directory = directory[:-1]
-			output = subprocess.run(['tar', '-cf', self.localMasterDir + directory + '.tar', '-C', self.localMasterDir, directory], stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+			output = subprocess.run(['tar', '-cf', self.localMasterDir + directory + '.tar', '-C', self.localMasterDir, directory], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+			print(output.stdout)
 			command = ['rclone', 'copy', self.localMasterDir + directory + '.tar', self.cloudMasterDir, '--exclude', '.DS_Store']
 		else:
 			command = ['rclone', 'copy', self.localMasterDir + directory, self.cloudMasterDir + directory, '--exclude', '.DS_Store']
 	
-		output = subprocess.run(command, stdout = subprocess.PIPE, stderr = subprocess.PIPE, encoding = 'utf-8')
-		if output.stderr != '':
-			print(command)
-			print(output.stderr)
-			pdb.set_trace()
-			raise Exception('rclone was not able to sync ' + directory)
+		output = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+		print(output.stdout)
 
-	def _identifyNodeType(self):
-		self.node_name = os.uname()[1]
-		if 'lawn' in self.node_name:
-			self.node_type = 'lawn'
-		elif 'login7-d' in self.node_name:
-			self.node_type = 'RHEL7 headnode'
-		elif 'login-s' in self.node_name:
-			self.node_type = 'RHEL6 headnode'
-		elif 'rich' in self.node_name:
-			self.node_type = 'datamover node'
-		elif 'pace' in self.node_name:
-			self.node_type = 'compute node'
-		else:
-			self.node_type = 'unknown'
