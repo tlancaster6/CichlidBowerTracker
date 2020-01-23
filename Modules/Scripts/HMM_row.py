@@ -54,6 +54,10 @@ for i, column in enumerate(data): # Iterate through each column
 	freq, bins = np.histogram(means, bins = range(0,257,2))
 	states = bins[0:-1][freq > hmm_window]
 	n_states = len(states)
+	if n_states == 0:
+		print('n_states = 0 for row {}. Setting n_states to 1, states to [122]'.format(i))
+		n_states = 1
+		states = [122]
 
 	# Calculate HMM
 	model = hmm.GaussianHMM(n_components=n_states, covariance_type="spherical")
