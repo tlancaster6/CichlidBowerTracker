@@ -70,16 +70,18 @@ class FileManager():
 			raise Exception('Multiple writable drives in /media/pi/. Options are: ' + str(writableDirs))
 
 	def _createDirectory(self, directory):
+		print('creating {}'.format(directory))
 		if not os.path.exists(directory):
 			os.makedirs(directory)
 
 	def _downloadFile(self, dfile):
+		print('downloading {}'.format(dfile))
 		subprocess.call(['rclone', 'copy', self.cloudMasterDir + dfile, self.localMasterDir], stderr = subprocess.PIPE)
 		if not os.path.exists(self.localMasterDir + dfile):
 			raise FileNotFoundError('Unable to download ' + dfile + ' from ' + self.cloudMasterDir)
 
 	def downloadDirectory(self, directory):
-
+		print('downloading {}'.format(directory))
 		# First try to download tarred Directory
 		tar_directory = directory[:-1] + '.tar'
 		output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir, '--fast-list', '--checkers', '40', '--transfers', '40', '--tpslimit', '10'],stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
@@ -99,6 +101,7 @@ class FileManager():
 				raise FileNotFoundError('Unable to download ' + directory + ' from ' + self.cloudMasterDir)
 
 	def uploadData(self, directory1, directory2, tar=False):
+		print('uploading {} to {}'.format(directory1, directory2))
 		if tar:
 			if directory1[-1] == '/':
 				directory1 = directory1[:-1]

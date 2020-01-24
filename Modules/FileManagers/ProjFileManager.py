@@ -226,10 +226,12 @@ class ProjFileManager:
 
 
 	def _createDirectory(self, directory):
+		print('creating {}'.format(directory))
 		if not os.path.exists(directory):
 			os.makedirs(directory)
 
 	def _downloadFile(self, dfile, localMasterDir = None, cloudMasterDir = None):
+		print('downloading {}'.format(dfile))
 		if localMasterDir is None:
 			localMasterDir = self.localMasterDir
 		if cloudMasterDir is None:
@@ -241,7 +243,7 @@ class ProjFileManager:
 			raise FileNotFoundError('Unable to download ' + dfile + ' from ' + self.cloudMasterDir)
 
 	def _downloadDirectory(self, directory):
-
+		print('downloading {}'.format(directory))
 		# First try to download tarred Directory
 		tar_directory = directory[:-1] + '.tar'
 		output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir, '--fast-list', '--checkers', '40', '--transfers', '40', '--tpslimit', '10'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
@@ -262,6 +264,7 @@ class ProjFileManager:
 
 
 	def _uploadDirectory(self, directory, tar = False):
+		print('uploading {}'.format(directory))
 		if tar:
 			if directory[-1] == '/':
 				directory = directory[:-1]
