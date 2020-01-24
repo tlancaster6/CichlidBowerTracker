@@ -16,8 +16,19 @@ class ProjFileManager:
 	def downloadData(self, dtype):
 
 		if dtype == 'Download':
-			for d in ['Prep', 'Depth', 'Cluster', 'MLClassification', 'Figures', 'ObjectLabeler']:
-				self.downloadData(d)
+			self._createDirectory(self.localMasterDir)
+			self._createDirectory(self.localAnalysisDir)
+			self._createDirectory(self.localTroubleshootingDir)
+			self._createDirectory(self.localTempDir)
+			self._createDirectory(self.localFiguresDir)
+			self._createDirectory(self.localAllClipsDir)
+			self._createDirectory(self.localManualLabelClipsDir)
+			self._createDirectory(self.localManualLabelFramesDir)
+			self._createDirectory(self.localManualLabelFramesDir[:-1] + '_pngs')
+			self._downloadFile(self.logfile)
+			self._downloadDirectory(self.prepDir)
+			self._downloadDirectory(self.frameDir)
+			self._downloadDirectory(self.prepDir)
 
 		elif dtype == 'Prep':
 			self._createDirectory(self.localMasterDir)
@@ -226,17 +237,18 @@ class ProjFileManager:
 
 		# First try to download tarred Directory
 		tar_directory = directory[:-1] + '.tar'
-		check_code = subprocess.run(['rclone', 'check', self.cloudMasterDir + tar_directory, self.localMasterDir + tar_directory], stderr=subprocess.PIPE, stdout=subprocess.PIPE).returncode
-		output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir],stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+		output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + tar_directory, self.localMasterDir, '--fast_list', '-v', '--checkers', '40', '--transfers', '40', '--tpslimit', '10'],stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
 		print(output.stdout)
-		if os.path.exists(self.localMasterDir + tar_directory) and (check_code != 0):
+		if os.path.exists(self.localMasterDir + tar_directory):
 			output = subprocess.run(['tar', '-xf', self.localMasterDir + tar_directory, '-C', self.localMasterDir], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
 			print(output.stdout)
 			if not os.path.exists(self.localMasterDir + directory):
 				raise FileNotFoundError('Unable to untar ' + tar_directory)
+			else:
+				subprocess.run(['rm', '-f', self.localMasterDir + tar_directory])
 
 		else:
-			output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + directory, self.localMasterDir + directory],stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+			output = subprocess.run(['rclone', 'copy', self.cloudMasterDir + directory, self.localMasterDir + directory, '--fast_list', '-v', '--checkers', '40', '--transfers', '40', '--tpslimit', '10'],stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
 			print(output.stdout)
 			if not os.path.exists(self.localMasterDir + directory):
 				raise FileNotFoundError('Unable to download ' + directory + ' from ' + self.cloudMasterDir)
