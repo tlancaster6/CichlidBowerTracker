@@ -17,18 +17,25 @@ class ProjFileManager:
 
 		if dtype == 'Download':
 			self._createDirectory(self.localMasterDir)
-			self._createDirectory(self.localAnalysisDir)
 			self._createDirectory(self.localTroubleshootingDir)
+			self._createDirectory(self.localAnalysisDir)
 			self._createDirectory(self.localTempDir)
 			self._createDirectory(self.localFiguresDir)
 			self._createDirectory(self.localAllClipsDir)
 			self._createDirectory(self.localManualLabelClipsDir)
 			self._createDirectory(self.localManualLabelFramesDir)
 			self._createDirectory(self.localManualLabelFramesDir[:-1] + '_pngs')
+			self._createDirectory(self.localProcessedClipsDir)
 			self._downloadFile(self.logfile)
 			self._downloadDirectory(self.prepDir)
 			self._downloadDirectory(self.frameDir)
 			self._downloadDirectory(self.prepDir)
+			self._downloadDirectory(self.videoDir)
+			self._downloadDirectory(self.manualLabelFramesDir)
+			try:
+				self._downloadFile(self.labeledFramesFile, self.localAnalysisDir, self.cloudAnalysisDir)
+			except FileNotFoundError:
+				pass
 
 		elif dtype == 'Prep':
 			self._createDirectory(self.localMasterDir)
