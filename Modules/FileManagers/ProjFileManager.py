@@ -26,6 +26,7 @@ class ProjFileManager:
 			self._createDirectory(self.localManualLabelFramesDir)
 			self._createDirectory(self.localManualLabelFramesDir[:-1] + '_pngs')
 			self._createDirectory(self.localProcessedClipsDir)
+			self._downloadDirectory(self.analysisDir)
 			self._downloadFile(self.logfile)
 			self._downloadDirectory(self.prepDir)
 			self._downloadDirectory(self.frameDir)
