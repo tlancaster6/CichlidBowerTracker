@@ -16,7 +16,7 @@ prepParser = subparsers.add_parser('ManualPrep',
 prepParser.add_argument('-p', '--ProjectIDs', nargs='+', required=True, type=str,
                         help='Manually identify the projects you want to analyze. If All is specified, all non-prepped projects will be analyzed')
 prepParser.add_argument('-w', '--Workers', type=int,
-                        help='Use if you want to control how many workers this analysis uses', default=14)
+                        help='Use if you want to control how many workers this analysis uses', default=28)
 prepParser.add_argument('-g', '--GPUs', type=int, help='Use if you want to control how many GPUs this analysis uses',
                         default=1)
 prepParser.add_argument('-t', '--TempDir', type=str,
@@ -150,10 +150,10 @@ if args.command == 'TotalProjectAnalysis':
             log.write(asctime() + ' -- Modifying {} PBS files for chaining\n'.format(pid))
             if (n + 1) < len(args.ProjectIDs):
                 with r6_shell.open(localPbsDir + '/Next.pbs', 'a') as f:
-                    f.write('ssh login-s \'cd ~/scratch/{}/PBS; qsub Download.pbs\''.format(args.ProjectIDs[n+1]))
+                    f.write('\nssh login-s \'cd ~/scratch/{}/PBS; qsub Download.pbs\'\n'.format(args.ProjectIDs[n+1]))
             else:
                 with r6_shell.open(localPbsDir + '/Next.pbs', 'a') as f:
-                    f.write('ssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'')
+                    f.write('\nssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'\n')
 
         print('Initiating Analysis')
         log.write(asctime() + ' -- submitting Download script for {}\n'.format(args.ProjectIDs[0]))

@@ -18,7 +18,7 @@ class FigurePreparer:
 	# 4. Analyze building, shape, and other pertinent info of the bower
 
 	def __init__(self, projFileManager):
-		self.__version__ = '1.0.0'
+		self.__version__ = '1.0.1'
 		self.projFileManager = projFileManager
 		self.lp_obj = LP(projFileManager.localLogfile)
 		self.da_obj = DA(projFileManager)
@@ -146,7 +146,7 @@ class FigurePreparer:
 		dailyDT = pd.DataFrame(dailyChangeData)
 		hourlyDT = pd.DataFrame(hourlyChangeData)
 
-		writer = pd.ExcelWriter(self.projFileManager.localFiguresDir + 'DataSummary.xlsx')
+		writer = pd.ExcelWriter(self.projFileManager.localFiguresDir + 'DepthDataSummary.xlsx')
 		totalDT.to_excel(writer, 'Total')
 		dailyDT.to_excel(writer, 'Daily')
 		hourlyDT.to_excel(writer, 'Hourly')
@@ -172,7 +172,7 @@ class FigurePreparer:
 
 		plt.close('all')
 
-	def _createClusterFigures(self):
+	def _createClusterFigures(self, hourlyDelta=1):
 		# figures based on the cluster data
 
 		# semi-transparent scatterplots showing the spatial distrubtion of each cluster classification each day
@@ -200,16 +200,23 @@ class FigurePreparer:
 		plt.close(fig=fig)
 
 		# heatmaps of the estimated daily scoop and spit areal densities
+		start_day = self.lp_obj.frames[0].time.replace(hour=0, minute=0, second=0, microsecond=0)
 		fig, axes = plt.subplots(2, self.lp_obj.numDays, figsize=(1.5 * self.lp_obj.numDays, 4))
 		fig.suptitle(self.lp_obj.projectID + ' Daily Scoop Spit Heatmaps')
-		t0 = self.lp_obj.master_start.replace(hour=0, minute=0, second=0, microsecond=0)
 		vmax = 0
 		cbar_reference = None
 		subplot_handles = []
+		dailyChangeData = []
 		for i in range(self.lp_obj.numDays):
-			t1 = t0 + datetime.timedelta(hours=24)
-			z_scoop = self.ca_obj.returnClusterKDE(t0=t0, t1=t1, bid='c', cropped=True)
-			z_spit = self.ca_obj.returnClusterKDE(t0=t0, t1=t1, bid='p', cropped=True)
+			start = start_day + datetime.timedelta(hours=24 * i)
+			stop = start_day + datetime.timedelta(hours=24 * (i + 1))
+			dailyChangeData.append(vars(self.da_obj.returnVolumeSummary(start, stop)))
+			dailyChangeData[i]['Day'] = i + 1
+			dailyChangeData[i]['Midpoint'] = i + 1 + .5
+			dailyChangeData[i]['StartTime'] = str(start)
+
+			z_scoop = self.ca_obj.returnClusterKDE(t0=start, t1=stop, bid='c', cropped=True)
+			z_spit = self.ca_obj.returnClusterKDE(t0=start, t1=stop, bid='p', cropped=True)
 			z = z_spit - z_scoop
 			im = axes[0, i].imshow(z, cmap='viridis', interpolation='none')
 			subplot_handles.append(im)
@@ -218,11 +225,10 @@ class FigurePreparer:
 			if np.max(np.abs(z)) > vmax:
 				vmax = np.max(np.abs(z))
 				cbar_reference = im
-			bowers = self.ca_obj.returnBowerLocations(t0, t1, cropped=True)
+			bowers = self.ca_obj.returnBowerLocations(start, stop, cropped=True)
 			axes[1, i].imshow(bowers, cmap='viridis', vmin=-1, vmax=1)
 			axes[1, i].set(xlabel=None, ylabel=None, aspect='equal')
 			axes[1, i].tick_params(colors=[0, 0, 0, 0])
-			t0 = t1
 		for im in subplot_handles:
 			im.set_clim(-vmax, vmax)
 		cbar = fig.colorbar(cbar_reference, ax=axes[0, :].tolist(), shrink=0.7)
@@ -234,6 +240,71 @@ class FigurePreparer:
 
 		fig.savefig(self.projFileManager.localFiguresDir + 'DailyScoopSpitDensities.pdf')
 		plt.close(fig=fig)
+
+		# heatmaps of the estimated hourly scoop and spit areal densities
+		fig = plt.figure(figsize=(11, 8.5))
+		grid = plt.GridSpec(self.lp_obj.numDays, int(10 / hourlyDelta) + 2, wspace=0.05, hspace=0.05)
+		bounding_ax = fig.add_subplot(grid[:, :])
+		bounding_ax.xaxis.set_visible(False)
+		bounding_ax.set_ylabel('Day')
+		bounding_ax.set_ylim(self.lp_obj.numDays + 0.5, 0.5)
+		bounding_ax.yaxis.set_major_locator(ticker.MultipleLocator(base=1.0))
+		bounding_ax.set_yticklabels(range(self.lp_obj.numDays + 1))
+		sns.despine(ax=bounding_ax, left=True, bottom=True)
+
+		hourlyChangeData = []
+		v = 3
+		for i in range(0, self.lp_obj.numDays):
+			for j in range(int(10 / hourlyDelta)):
+				start = start_day + datetime.timedelta(hours=24 * i + j * hourlyDelta + 8)
+				stop = start_day + datetime.timedelta(hours=24 * i + (j + 1) * hourlyDelta + 8)
+
+				hourlyChangeData.append(vars(self.ca_obj.returnClusterSummary(start, stop)))
+				hourlyChangeData[-1]['Day'] = i + 1
+				hourlyChangeData[-1]['Midpoint'] = i + 1 + ((j + 0.5) * hourlyDelta + 8) / 24
+				hourlyChangeData[-1]['StartTime'] = str(start)
+
+				current_ax = fig.add_subplot(grid[i, j])
+
+				scoops = self.ca_obj.returnClusterKDE(start, stop, 'c', cropped=True)
+				spits = self.ca_obj.returnClusterKDE(start, stop, 'p', cropped=True)
+				current_ax.imshow(spits - scoops, vmin=-v, vmax=v)
+				current_ax.set_adjustable('box')
+				current_ax.tick_params(colors=[0, 0, 0, 0])
+				if i == 0:
+					current_ax.set_title(str(j * hourlyDelta + 8) + '-' + str((j + 1) * hourlyDelta + 8))
+
+			current_ax = fig.add_subplot(grid[i, -2])
+			current_ax.imshow(self.ca_obj.returnBowerLocations(stop - datetime.timedelta(hours=24), stop, cropped=True),
+							  vmin=-1, vmax=1)
+			current_ax.set_adjustable('box')
+			current_ax.tick_params(colors=[0, 0, 0, 0])
+			if i == 0:
+				current_ax.set_title('Daily\nMask')
+
+			current_ax = fig.add_subplot(grid[i, -1])
+			scoops = self.ca_obj.returnClusterKDE(stop - datetime.timedelta(hours=24), stop, 'c', cropped=True)
+			spits = self.ca_obj.returnClusterKDE(stop - datetime.timedelta(hours=24), stop, 'p', cropped=True)
+			current_ax.imshow(spits - scoops, vmin=-v, vmax=v)
+			current_ax.set_adjustable('box')
+			current_ax.tick_params(colors=[0, 0, 0, 0])
+			if i == 0:
+				current_ax.set_title('Daily\nTotal')
+
+		fig.savefig(self.projFileManager.localFiguresDir + 'HourlyScoopSpitDensities.pdf')
+		plt.close(fig=fig)
+
+		totalChangeData = vars(self.ca_obj.returnClusterSummary(self.lp_obj.frames[0].time, self.lp_obj.frames[-1].time))
+
+		totalDT = pd.DataFrame([totalChangeData])
+		dailyDT = pd.DataFrame(dailyChangeData)
+		hourlyDT = pd.DataFrame(hourlyChangeData)
+
+		writer = pd.ExcelWriter(self.projFileManager.localFiguresDir + 'ClusterDataSummary.xlsx')
+		totalDT.to_excel(writer, 'Total')
+		dailyDT.to_excel(writer, 'Daily')
+		hourlyDT.to_excel(writer, 'Hourly')
+		writer.save()
 
 	def _createCombinedFigures(self):
 		# create figures based on a combination of cluster and depth data
@@ -354,7 +425,7 @@ class FigurePreparer:
 		fig.savefig(self.projFileManager.localFiguresDir + 'WholeTrialBowerIdentificationConsistency.pdf')
 		plt.close(fig=fig)
 
-	def createAllFigures(self, hourlyDelta=2):
+	def createAllFigures(self, clusterHourlyDelta=1, depthHourlyDelta=1):
 		self._createCombinedFigures()
-		self._createClusterFigures()
-		self._createDepthFigures(hourlyDelta=hourlyDelta)
+		self._createClusterFigures(hourlyDelta=clusterHourlyDelta)
+		self._createDepthFigures(hourlyDelta=depthHourlyDelta)

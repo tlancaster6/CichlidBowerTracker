@@ -4,6 +4,7 @@ from sklearn.neighbors import KernelDensity
 from skimage import morphology
 import datetime
 import sys
+from types import SimpleNamespace
 from Modules.DataObjects.LogParser import LogParser as LP
 
 
@@ -13,7 +14,7 @@ class ClusterAnalyzer:
     def __init__(self, projFileManager):
         self.projFileManager = projFileManager
         self.bids = ['c', 'p', 'b', 'f', 't', 'm', 's', 'd', 'o', 'x']
-        self.lp_obj = LP(projFileManager.localLogfile)
+        self.lp = LP(projFileManager.localLogfile)
         self._loadData()
 
     def _loadData(self):
@@ -26,6 +27,7 @@ class ClusterAnalyzer:
             tray = line.rstrip().split(',')
             self.tray_r = [int(x) for x in tray]
         self.cropped_dims = [self.tray_r[2] - self.tray_r[0], self.tray_r[3] - self.tray_r[1]]
+        self.goodPixels = (self.tray_r[2] - self.tray_r[0]) * (self.tray_r[3] - self.tray_r[1])
 
     def _appendDepthCoordinates(self):
         # adds columns containing X and Y in depth coordinates to all cluster csv
@@ -113,6 +115,36 @@ class ClusterAnalyzer:
 
         bowers = spit_binary - scoop_binary
         return bowers
+
+    def returnClusterSummary(self, t0, t1):
+        self._checkTimes(t0, t1)
+        pixelLength = self.projFileManager.pixelLength
+        bowerIndex_pixels = int(self.goodPixels * self.projFileManager.bowerIndexFraction)
+        bowerLocations = self.returnBowerLocations(t0, t1)
+        clusterKde = self.returnClusterKDE(t0, t1, 'p') - self.returnClusterKDE(t0, t1, 'c')
+        clusterKdeAbs = clusterKde.copy()
+        clusterKdeAbs = np.abs(clusterKdeAbs)
+
+        outData = SimpleNamespace()
+        # Get data
+        outData.projectID = self.lp.projectID
+        outData.absoluteVolume = np.nansum(clusterKdeAbs) * pixelLength ** 2
+        outData.summedVolume = np.nansum(clusterKde) * pixelLength ** 2
+        outData.castleArea = np.count_nonzero(bowerLocations == 1) * pixelLength ** 2
+        outData.pitArea = np.count_nonzero(bowerLocations == -1) * pixelLength ** 2
+        outData.castleVolume = np.nansum(clusterKde[bowerLocations == 1]) * pixelLength ** 2
+        outData.pitVolume = np.nansum(clusterKde[bowerLocations == -1]) * -1 * pixelLength ** 2
+        outData.bowerVolume = outData.castleVolume + outData.pitVolume
+
+        flattenedData = clusterKdeAbs.flatten()
+        sortedData = np.sort(flattenedData[~np.isnan(flattenedData)])
+        threshold = sortedData[-1 * bowerIndex_pixels]
+        thresholdCastleVolume = np.nansum(clusterKdeAbs[(bowerLocations == 1) & (clusterKdeAbs > threshold)])
+        thresholdPitVolume = np.nansum(clusterKdeAbs[(bowerLocations == -1) & (clusterKdeAbs > threshold)])
+
+        outData.bowerIndex = (thresholdCastleVolume - thresholdPitVolume) / (thresholdCastleVolume + thresholdPitVolume)
+
+        return outData
 
     def _checkTimes(self, t0, t1=None):
         if t1 is None:
