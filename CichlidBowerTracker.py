@@ -16,7 +16,7 @@ prepParser = subparsers.add_parser('ManualPrep',
 prepParser.add_argument('-p', '--ProjectIDs', nargs='+', required=True, type=str,
                         help='Manually identify the projects you want to analyze. If All is specified, all non-prepped projects will be analyzed')
 prepParser.add_argument('-w', '--Workers', type=int,
-                        help='Use if you want to control how many workers this analysis uses', default=28)
+                        help='Use if you want to control how many workers this analysis uses', default=14)
 prepParser.add_argument('-g', '--GPUs', type=int, help='Use if you want to control how many GPUs this analysis uses',
                         default=1)
 prepParser.add_argument('-t', '--TempDir', type=str,
