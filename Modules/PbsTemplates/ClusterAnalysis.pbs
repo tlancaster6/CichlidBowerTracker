@@ -3,7 +3,7 @@
 #PBS -l feature=${BRAND}
 #PBS -l walltime=12:00:00
 #PBS -l file=100gb
-#PBS -l mem=130
+#PBS -l mem=130gb
 #PBS -q iw-shared-6
 #PBS -j oe
 #PBS -o ../Troubleshooting/ClusterAnalysis.out
