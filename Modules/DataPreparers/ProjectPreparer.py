@@ -111,6 +111,14 @@ class ProjectPreparer():
 		uploadCommands = set()
 
 		uploadFiles = [x for x in os.listdir(self.fileManager.localUploadDir) if 'UploadData' in x]
+		temp = []
+		for uFile in uploadFiles:
+			with open(self.fileManager.localUploadDir + uFile) as f:
+				for line in f.readlines():
+					if self.projectID in line:
+						temp.append(uFile)
+						break
+		uploadFiles = temp
 
 		for uFile in uploadFiles:
 			with open(self.fileManager.localUploadDir + uFile) as f:
