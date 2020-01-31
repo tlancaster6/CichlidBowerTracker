@@ -128,21 +128,21 @@ class ClusterAnalyzer:
         outData = SimpleNamespace()
         # Get data
         outData.projectID = self.lp.projectID
-        outData.absoluteVolume = np.nansum(clusterKdeAbs) * pixelLength ** 2
-        outData.summedVolume = np.nansum(clusterKde) * pixelLength ** 2
+        outData.absoluteKdeVolume = np.nansum(clusterKdeAbs) * pixelLength ** 2
+        outData.summedKdeVolume = np.nansum(clusterKde) * pixelLength ** 2
         outData.castleArea = np.count_nonzero(bowerLocations == 1) * pixelLength ** 2
         outData.pitArea = np.count_nonzero(bowerLocations == -1) * pixelLength ** 2
-        outData.castleVolume = np.nansum(clusterKde[bowerLocations == 1]) * pixelLength ** 2
-        outData.pitVolume = np.nansum(clusterKde[bowerLocations == -1]) * -1 * pixelLength ** 2
-        outData.bowerVolume = outData.castleVolume + outData.pitVolume
+        outData.castleKdeVolume = np.nansum(clusterKde[bowerLocations == 1]) * pixelLength ** 2
+        outData.pitKdeVolume = np.nansum(clusterKde[bowerLocations == -1]) * -1 * pixelLength ** 2
+        outData.bowerKdeVolume = outData.castleKdeVolume + outData.pitKdeVolume
 
         flattenedData = clusterKdeAbs.flatten()
         sortedData = np.sort(flattenedData[~np.isnan(flattenedData)])
         threshold = sortedData[-1 * bowerIndex_pixels]
-        thresholdCastleVolume = np.nansum(clusterKdeAbs[(bowerLocations == 1) & (clusterKdeAbs > threshold)])
-        thresholdPitVolume = np.nansum(clusterKdeAbs[(bowerLocations == -1) & (clusterKdeAbs > threshold)])
+        thresholdCastleKdeVolume = np.nansum(clusterKdeAbs[(bowerLocations == 1) & (clusterKdeAbs > threshold)])
+        thresholdPitKdeVolume = np.nansum(clusterKdeAbs[(bowerLocations == -1) & (clusterKdeAbs > threshold)])
 
-        outData.bowerIndex = (thresholdCastleVolume - thresholdPitVolume) / (thresholdCastleVolume + thresholdPitVolume)
+        outData.bowerIndex = (thresholdCastleKdeVolume - thresholdPitKdeVolume) / (thresholdCastleKdeVolume + thresholdPitKdeVolume)
 
         return outData
 
