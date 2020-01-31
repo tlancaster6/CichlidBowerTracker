@@ -3,7 +3,7 @@
 #PBS -l feature=${BRAND}
 #PBS -l walltime=12:00:00
 #PBS -l file=100gb
-#PBS -l mem=130gb
+#PBS -l mem=250gb
 #PBS -q iw-shared-6
 #PBS -j oe
 #PBS -o ../Troubleshooting/ClusterAnalysis.out
@@ -16,3 +16,4 @@ echo "Started on `/bin/hostname`"
 module load anaconda3
 source activate CichlidBowerTracker
 python3 CichlidBowerTracker.py ProjectAnalysis Cluster ${PROJECT_ID} -w ${WORKERS} -v ${PBS_ARRAYID} -t ${TMPDIR}
+
