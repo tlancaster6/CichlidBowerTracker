@@ -59,10 +59,9 @@ class AnalysisPreparer:
 				potentialProjects.add(directory.split('/')[0])
 
 			for projectID in sorted(potentialProjects):
-				necessaryFiles = [projectID + '/' + x for x in necessaryFiles]
 				goodProject = True
 			
-				for nFile in necessaryFiles:
+				for nFile in [projectID + '/' + x for x in necessaryFiles]:
 					if nFile not in projectData:
 						goodProject = False
 
