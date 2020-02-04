@@ -194,10 +194,10 @@ class VideoPreparer:
 
 	def _createClusters(self, empty=False):
 		if empty:
-			column_labels = ['ID', 'projectID', 'videoID', 'N', 't', 'X', 'Y', 't_span', 'X_span', 'Y_span',
+			column_labels = ['LID', 'projectID', 'videoID', 'N', 't', 'X', 'Y', 't_span', 'X_span', 'Y_span',
 							 'ManualAnnotation', 'ManualLabel', 'ClipCreated', 'DepthChange', 'TimeStamp', 'ClipName']
 			clusterData = pd.DataFrame(columns=column_labels)
-			clusterData.to_csv(self.videoObj.localLabeledClustersFile, sep=',')
+			clusterData.to_csv(self.videoObj.localLabeledClustersFile, sep=',', index=False)
 			self.clusterData = clusterData
 			return
 
