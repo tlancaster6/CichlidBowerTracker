@@ -27,6 +27,7 @@ class VideoPreparer:
 
 
 		self.HMMsecs = int((min(self.videoObj.endTime, self.lightsOffTime) - self.videoObj.startTime).total_seconds() - 1)
+		print(self.HMMsecs)
 
 	def processVideo(self):
 		self._validateVideo()
