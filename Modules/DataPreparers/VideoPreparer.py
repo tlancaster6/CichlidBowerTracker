@@ -27,15 +27,18 @@ class VideoPreparer:
 
 
 		self.HMMsecs = int((min(self.videoObj.endTime, self.lightsOffTime) - self.videoObj.startTime).total_seconds() - 1)
-		print(self.HMMsecs)
 
 	def processVideo(self):
-		self._validateVideo()
-		self._decompressVideo()
-		self._calculateHMM()
-		self._createClusters()
-		self._createAnnotationVideos()
-		self._createAnnotationFrames()
+		if (self.videoObj.startTime - self.lightsOffTime) < datetime.timedelta(minutes=30):
+			print('invalid video. starts less than 30 minutes before lights off')
+			self._createClusters(empty=True)
+		else:
+			self._validateVideo()
+			self._decompressVideo()
+			self._calculateHMM()
+			self._createClusters()
+			self._createAnnotationVideos()
+			self._createAnnotationFrames()
 		
 		subprocess.run(['rm', '-rf', self.videoObj.localTempDir])
 		return self.clusterData
@@ -189,7 +192,15 @@ class VideoPreparer:
 
 		# Delete temp data
 
-	def _createClusters(self):
+	def _createClusters(self, empty=False):
+		if empty:
+			column_labels = ['ID', 'projectID', 'videoID', 'N', 't', 'X', 'Y', 't_span', 'X_span', 'Y_span',
+							 'ManualAnnotation', 'ManualLabel', 'ClipCreated', 'DepthChange', 'TimeStamp', 'ClipName']
+			clusterData = pd.DataFrame(columns=column_labels)
+			clusterData.to_csv(self.videoObj.localLabeledClustersFile, sep=',')
+			self.clusterData = clusterData
+			return
+
 		print('  Creating clusters from HMM transitions,,Time: ' + str(datetime.datetime.now())) 
 
 		# Load in HMM data
