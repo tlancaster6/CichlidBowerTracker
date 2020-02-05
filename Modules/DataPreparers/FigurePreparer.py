@@ -306,6 +306,20 @@ class FigurePreparer:
 		hourlyDT.to_excel(writer, 'Hourly')
 		writer.save()
 
+		# heatmap of the estimated whole-trial scoop and spit areal densities
+		fig, ax = plt.subplots(1, 1)
+		scoops = self.ca_obj.returnClusterKDE(self.lp_obj.frames[0].time, self.lp_obj.frames[-1].time, 'c', cropped=True)
+		spits = self.ca_obj.returnClusterKDE(self.lp_obj.frames[0].time, self.lp_obj.frames[-1].time, 'p', cropped=True)
+		z = scoops - spits
+		v = 0.75 * np.max(np.abs(z))
+		handle = ax.imshow(z, vmin=-v, vmax=v)
+		cbar = fig.colorbar(handle, ax=ax)
+		cbar.set_label(r'$spits/cm^2$ - $scoops/cm^2$')
+		ax.set(title='whole-trial spit-scoop KDE', xlabel=None, ylabel=None, aspect='equal')
+		ax.tick_params(colors=[0, 0, 0, 0])
+		fig.savefig(self.projFileManager.localFiguresDir + 'WholeTrialScoopSpitDensities.pdf')
+		plt.close(fig=fig)
+
 	def _createCombinedFigures(self):
 		# create figures based on a combination of cluster and depth data
 

@@ -106,11 +106,12 @@ class ClusterAnalyzer:
             minPixels = self.projFileManager.totalMinPixels
 
         z_scoop = self.returnClusterKDE(t0, t1, 'c', cropped=cropped, bandwidth=bandwidth)
-        scoop_binary = np.where(z_scoop >= totalThreshold, True, False)
+        z_spit = self.returnClusterKDE(t0, t1, 'p', cropped=cropped, bandwidth=bandwidth)
+
+        scoop_binary = np.where(z_spit - z_scoop <= -1 * totalThreshold, True, False)
         scoop_binary = morphology.remove_small_objects(scoop_binary, minPixels).astype(int)
 
-        z_spit = self.returnClusterKDE(t0, t1, 'p', cropped=cropped, bandwidth=bandwidth)
-        spit_binary = np.where(z_spit >= totalThreshold, True, False)
+        spit_binary = np.where(z_spit - z_scoop >= totalThreshold, True, False)
         spit_binary = morphology.remove_small_objects(spit_binary, minPixels).astype(int)
 
         bowers = spit_binary - scoop_binary

@@ -11,7 +11,7 @@ from Modules.DataPreparers.PrepPreparer import PrepPreparer as PrP
 
 projFileManager = FM().retProjFileManager('MC6_5')
 fp_obj = FP(projFileManager)
-fp_obj._createClusterFigures()
+fp_obj.createAllFigures()
 
 # t0 = ca_obj.lp_obj.frames[0].time
 # t1 = ca_obj.lp_obj.frames[-1].time
