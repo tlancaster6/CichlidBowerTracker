@@ -76,9 +76,10 @@ class ProjFileManager:
 
 		elif dtype == 'Figures':
 			self._createDirectory(self.localMasterDir)
+			self._createDirectory(self.localTroubleshootingDir)
+			self._createDirectory(self.localFiguresDir)
 			self._downloadFile(self.logfile)
 			self._downloadDirectory(self.analysisDir)
-			self._createDirectory(self.localFiguresDir)
 
 		elif dtype == 'ObjectLabeler':
 			self._createDirectory(self.localMasterDir)
