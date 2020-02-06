@@ -12,7 +12,6 @@ class LogFormatError(Exception):
 class LogParser:    
     def __init__(self, logfile):
 
-        
         self.logfile = logfile
         self.master_directory = logfile.replace(logfile.split('/')[-1], '') + '/'
         self.parse_log()

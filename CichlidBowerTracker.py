@@ -147,6 +147,10 @@ if args.command == 'TotalProjectAnalysis':
                            'source activate CichlidBowerTracker;'
                            'rclone copy {1} {0};'.format(localPbsDir, cloudPbsDir))
                 datamover_shell.run(['sh', '-c', command], encoding='utf-8')
+                command = ('module load anaconda3;'
+                           'source activate CichlidBowerTracker;'
+                           'python3 CichlidBowerTracker.py ProjectAnalysis Figures {} -d'.format(pid))
+                datamover_shell.run(['sh', '-c', command], cwd='data/CichlidBowerTracker', encoding='utf-8')
                 if pid == args.ProjectIDs[-1]:
                     with r6_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
                         f.write('ssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'\n')

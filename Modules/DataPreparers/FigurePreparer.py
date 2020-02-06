@@ -25,15 +25,12 @@ class FigurePreparer:
 		self.ca_obj = CA(projFileManager)
 
 	def validateInputData(self):
-		try:
-			assert os.path.exists(self.projFileManager.localLogfile)
-			assert os.path.exists(self.projFileManager.localFiguresDir)
-			assert os.path.exists(self.projFileManager.localSmoothDepthFile)
-			assert os.path.exists(self.projFileManager.localAnalysisDir)
-			assert os.path.exists(self.projFileManager.localAllLabeledClustersFile)
-			assert os.path.exists(self.projFileManager.localTransMFile)
-		except AssertionError:
-			self.projFileManager.downloadData('Figures')
+		assert os.path.exists(self.projFileManager.localLogfile)
+		assert os.path.exists(self.projFileManager.localFiguresDir)
+		assert os.path.exists(self.projFileManager.localSmoothDepthFile)
+		assert os.path.exists(self.projFileManager.localAnalysisDir)
+		assert os.path.exists(self.projFileManager.localAllLabeledClustersFile)
+		assert os.path.exists(self.projFileManager.localTransMFile)
 		self.uploads = [(self.projFileManager.localAnalysisDir, self.projFileManager.cloudAnalysisDir, 0),
 						(self.projFileManager.localFiguresDir, self.projFileManager.cloudFiguresDir, 0)]
 
