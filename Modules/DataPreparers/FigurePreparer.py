@@ -439,7 +439,7 @@ class FigurePreparer:
 		fig.savefig(self.projFileManager.localFiguresDir + 'WholeTrialBowerIdentificationConsistency.pdf')
 		plt.close(fig=fig)
 
-	def createAllFigures(self, clusterHourlyDelta=1, depthHourlyDelta=1):
+	def createAllFigures(self, clusterHourlyDelta=1, depthHourlyDelta=2):
 		self._createCombinedFigures()
 		self._createClusterFigures(hourlyDelta=clusterHourlyDelta)
 		self._createDepthFigures(hourlyDelta=depthHourlyDelta)
