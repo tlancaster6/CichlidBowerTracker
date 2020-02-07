@@ -28,7 +28,7 @@ class VideoPreparer:
 		self.HMMsecs = int((min(self.videoObj.endTime, self.lightsOffTime) - self.videoObj.startTime).total_seconds() - 1)
 
 	def processVideo(self):
-		if (self.videoObj.startTime - self.lightsOffTime) < datetime.timedelta(minutes=30):
+		if (self.lightsOffTime - self.videoObj.startTime) < datetime.timedelta(minutes=30):
 			print('invalid video. starts less than 30 minutes before lights off')
 			self._createClusters(empty=True)
 		else:
