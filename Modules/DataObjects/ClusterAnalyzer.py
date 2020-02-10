@@ -139,7 +139,10 @@ class ClusterAnalyzer:
 
         flattenedData = clusterKdeAbs.flatten()
         sortedData = np.sort(flattenedData[~np.isnan(flattenedData)])
-        threshold = sortedData[-1 * bowerIndex_pixels]
+        try:
+            threshold = sortedData[-1 * bowerIndex_pixels]
+        except IndexError:
+            threshold = 0
         thresholdCastleKdeVolume = np.nansum(clusterKdeAbs[(bowerLocations == 1) & (clusterKdeAbs > threshold)])
         thresholdPitKdeVolume = np.nansum(clusterKdeAbs[(bowerLocations == -1) & (clusterKdeAbs > threshold)])
 
