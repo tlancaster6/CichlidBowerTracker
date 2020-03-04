@@ -200,7 +200,6 @@ class ProjFileManager:
 		self.hourlyMinPixels = 1000
 		self.dailyMinPixels = 1000
 		self.totalMinPixels = 1000
-		self.kdeBandwidth = 3.0
 		self.bowerIndexFraction = 0.1
 
 		# Video related parameters

@@ -2,11 +2,11 @@ import numpy as np
 import pandas as pd
 from sklearn.neighbors import KernelDensity
 from skimage import morphology
+from math import sqrt
 import datetime
 import sys
 from types import SimpleNamespace
 from Modules.DataObjects.LogParser import LogParser as LP
-
 
 
 class ClusterAnalyzer:
@@ -30,6 +30,7 @@ class ClusterAnalyzer:
         self.goodPixels = (self.tray_r[2] - self.tray_r[0]) * (self.tray_r[3] - self.tray_r[1])
 
     def _appendDepthCoordinates(self):
+
         # adds columns containing X and Y in depth coordinates to all cluster csv
         if 'Y_depth' not in list(self.clusterData.columns):
             self.clusterData['Y_depth'] = self.clusterData.apply(
@@ -39,6 +40,11 @@ class ClusterAnalyzer:
             self.clusterData['X_depth'] = self.clusterData.apply(
                 lambda row: (self.transM[1][0] * row.Y + self.transM[1][1] * row.X + self.transM[1][2]) / (
                         self.transM[2][0] * row.Y + self.transM[2][1] * row.X + self.transM[2][2]), axis=1)
+
+        if 'approx_radius' not in list(self.clusterData.columns):
+            scaling_factor = sqrt(np.linalg.det(self.transM))
+            self.clusterData['approx_radius'] = self.clusterData.apply(
+                lambda row: np.mean(row.X_span + row.Y_span) * scaling_factor, axis=1)
         # self.clusterData.round({'X_Depth': 0, 'Y_Depth': 0})
 
         self.clusterData.to_csv(self.projFileManager.localAllLabeledClustersFile)
@@ -51,13 +57,13 @@ class ClusterAnalyzer:
             df_slice = df_slice[t0:t1]
         if bid is not None:
             df_slice = df_slice[df_slice.Model18_All_pred.isin(bid if type(bid) is list else [bid])]
-        if columns is not None:
-            df_slice = df_slice[columns]
         if cropped:
             df_slice = df_slice[(df_slice.X_depth > self.tray_r[0]) & (df_slice.X_depth < self.tray_r[2]) &
                                 (df_slice.Y_depth > self.tray_r[1]) & (df_slice.Y_depth < self.tray_r[3])]
             df_slice.X_depth = df_slice.X_depth - self.tray_r[0]
             df_slice.Y_depth = df_slice.Y_depth - self.tray_r[1]
+        if columns is not None:
+            df_slice = df_slice[columns]
         return df_slice
 
     def returnClusterCounts(self, t0, t1, bid='all', cropped=False):
@@ -74,7 +80,7 @@ class ClusterAnalyzer:
 
     def returnClusterKDE(self, t0, t1, bid, cropped=False, bandwidth=None):
         if bandwidth is None:
-            bandwidth = self.projFileManager.kdeBandwidth
+            bandwidth = self.sliceDataframe(t0, t1, bid, 'approx_radius').mean() / 2.355
         df_slice = self.sliceDataframe(t0=t0, t1=t1, bid=bid, cropped=cropped, columns=['X_depth', 'Y_depth'])
         n_events = len(df_slice.index)
         x_bins = int(self.tray_r[2] - self.tray_r[0])

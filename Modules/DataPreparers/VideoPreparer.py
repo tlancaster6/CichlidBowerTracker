@@ -24,8 +24,12 @@ class VideoPreparer:
 
 		self.lightsOnTime = self.videoObj.startTime.replace(hour = self.projFileManager.lightsOnTime, minute = 0, second = 0, microsecond = 0)
 		self.lightsOffTime = self.videoObj.startTime.replace(hour = self.projFileManager.lightsOffTime, minute = 0, second = 0, microsecond = 0)
+		try:
+			self.HMMsecs = int((min(self.videoObj.endTime, self.lightsOffTime) - self.videoObj.startTime).total_seconds() - 1)
+		except TypeError:
+			self.HMMsecs = int((self.lightsOffTime - self.videoObj.startTime).total_seconds() - 1)
+			self.videoObj.endTime = self.lightsOffTime
 
-		self.HMMsecs = int((min(self.videoObj.endTime, self.lightsOffTime) - self.videoObj.startTime).total_seconds() - 1)
 
 	def processVideo(self):
 		if (self.lightsOffTime - self.videoObj.startTime) < datetime.timedelta(minutes=30):

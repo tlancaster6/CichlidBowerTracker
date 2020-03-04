@@ -94,7 +94,7 @@ class DepthAnalyzer():
 			
 		return change	
 
-	def returnHeightChange(self, t0, t1, masked = False, cropped = False):
+	def returnHeightChange(self, t0, t1, masked=False, cropped=False):
 		# Check times are good
 		self._checkTimes(t0,t1)
 		
