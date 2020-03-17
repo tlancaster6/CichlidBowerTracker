@@ -42,7 +42,6 @@ class ClusterPreparer():
 						(self.projFileManager.localAllClipsDir, self.projFileManager.cloudMasterDir, '1'),
 						(self.projFileManager.localManualLabelClipsDir, self.projFileManager.cloudMasterDir, '1'),
 						(self.projFileManager.localManualLabelFramesDir, self.projFileManager.cloudMasterDir, '1'),
-						(self.projFileManager.localManualLabelFramesDir[:-1] + '_pngs', self.projFileManager.cloudMasterDir[:-1] + '_pngs', '1')
 						]
 
 	def runClusterAnalysis(self):
@@ -64,8 +63,7 @@ class ClusterPreparer():
 		for index in range(len(self.lp.movies)):
 			vp_obj = VP(self.projFileManager, index, self.workers)
 			vp_obj.createAnnotationFrames()
-		self.uploads = [(self.projFileManager.localManualLabelFramesDir, self.projFileManager.cloudMasterDir, '1'),
-						(self.projFileManager.localManualLabelFramesDir[:-1] + '_pngs/', self.projFileManager.cloudMasterDir, '1')]
+		self.uploads = [(self.projFileManager.localManualLabelFramesDir, self.projFileManager.cloudMasterDir, '1')]
 
 
 

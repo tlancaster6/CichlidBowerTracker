@@ -231,12 +231,16 @@ class FigurePreparer:
 			axes[1, i].tick_params(colors=[0, 0, 0, 0])
 		for im in subplot_handles:
 			im.set_clim(-vmax, vmax)
-		cbar = fig.colorbar(cbar_reference, ax=axes[0, :].tolist(), shrink=0.7)
-		cbar.set_label(r'$spits/cm^2$ - $scoops/cm^2$')
-		cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-1, vmax=1), cmap=cm.get_cmap('viridis', 3)),
-					 ax=axes[1, :].tolist(), shrink=0.7)
-		cbar.set_label('bower region')
-		cbar.set_ticks([-1, 0, 1])
+		try:
+			cbar = fig.colorbar(cbar_reference, ax=axes[0, :].tolist(), shrink=0.7)
+		except AttributeError:
+			pass
+		else:
+			cbar.set_label(r'$spits/cm^2$ - $scoops/cm^2$')
+			cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-1, vmax=1), cmap=cm.get_cmap('viridis', 3)),
+						 ax=axes[1, :].tolist(), shrink=0.7)
+			cbar.set_label('bower region')
+			cbar.set_ticks([-1, 0, 1])
 
 		fig.savefig(self.projFileManager.localFiguresDir + 'DailyScoopSpitDensities.pdf')
 		plt.close(fig=fig)
