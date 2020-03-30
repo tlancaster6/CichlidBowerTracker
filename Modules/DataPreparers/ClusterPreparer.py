@@ -19,7 +19,6 @@ class ClusterPreparer():
 		self.workers = workers
 		self.videoIndex = videoIndex
 
-
 	def validateInputData(self):
 		assert os.path.exists(self.projFileManager.localLogfile)
 		self.lp = LP(self.projFileManager.localLogfile)
