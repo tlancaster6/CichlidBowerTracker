@@ -231,11 +231,8 @@ class FigurePreparer:
 			axes[1, i].tick_params(colors=[0, 0, 0, 0])
 		for im in subplot_handles:
 			im.set_clim(-vmax, vmax)
-		try:
+		if vmax != 0:
 			cbar = fig.colorbar(cbar_reference, ax=axes[0, :].tolist(), shrink=0.7)
-		except AttributeError:
-			pass
-		else:
 			cbar.set_label(r'$spits/cm^2$ - $scoops/cm^2$')
 			cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=-1, vmax=1), cmap=cm.get_cmap('viridis', 3)),
 						 ax=axes[1, :].tolist(), shrink=0.7)
