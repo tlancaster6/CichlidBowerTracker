@@ -166,7 +166,7 @@ if args.command == 'TotalProjectAnalysis':
                 cloudPbsDir = 'cichlidVideo:BioSci-McGrath/Apps/CichlidPiData/{0}/PBS'.format(pid)
                 localPbsDir = 'scratch/{}/PBS'.format(pid)
 
-                command = ('mkdir -p -v {0};'
+                command = ('mkdir -p {0};'
                            'module load anaconda3;'
                            'source activate CichlidBowerTracker;'
                            'rclone copy {1} {0};'.format(localPbsDir, cloudPbsDir))
