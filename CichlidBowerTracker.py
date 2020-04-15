@@ -169,7 +169,7 @@ if args.command == 'TotalProjectAnalysis':
                 command = ('mkdir -p {0};'
                            'module load anaconda3;'
                            'source activate CichlidBowerTracker;'
-                           'rclone copy {1} {0};'.format(localPbsDir, cloudPbsDir))
+                           'rclone copy -vv {1} {0};'.format(localPbsDir, cloudPbsDir))
                 datamover_shell.run(['sh', '-c', command], encoding='utf-8')
                 log.write(asctime() + ' -- Modifying {} PBS files for chaining\n'.format(pid))
                 if (n + 1) < len(args.ProjectIDs):
