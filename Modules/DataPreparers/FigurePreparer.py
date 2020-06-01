@@ -311,7 +311,7 @@ class FigurePreparer:
 		fig, ax = plt.subplots(1, 1)
 		scoops = self.ca_obj.returnClusterKDE(self.lp_obj.frames[0].time, self.lp_obj.frames[-1].time, 'c', cropped=True)
 		spits = self.ca_obj.returnClusterKDE(self.lp_obj.frames[0].time, self.lp_obj.frames[-1].time, 'p', cropped=True)
-		z = scoops - spits
+		z = spits - scoops
 		v = 0.75 * np.max(np.abs(z))
 		handle = ax.imshow(z, vmin=-v, vmax=v)
 		cbar = fig.colorbar(handle, ax=ax)
