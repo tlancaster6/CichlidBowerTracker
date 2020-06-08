@@ -32,16 +32,35 @@ import sys
 # else:
 #     print('all required data present')
 #
-# dfs = []
 # for trial in ['CV10_3', 'TI2_4', 'TI3_3', 'MC6_5', 'MC16_2', 'MCxCVF1_12a_1', 'MCxCVF1_12b_1']:
-#     print(trial)
 #     projFileManager = FM().retProjFileManager(trial)
-#     plotter = Plotter(projFileManager)
-#     dfs.append(plotter.get_regression_data(whole_trial=True))
-# df = pd.concat(dfs)
-# g = sns.clustermap(np.abs(df).corr(), cmap='viridis', annot=True, fmt='.3f', cbar=True, vmin=-1, vmax=1, figsize=(10, 10))
-# g.savefig('/home/tlancaster6/Desktop/heatmaps/kde_heatmap_all_trials.pdf')
-# plt.close()
+#     projFileManager.downloadData(dtype='Figures')
+
+dfs = []
+for trial in ['CV10_3', 'TI2_4', 'TI3_3', 'MC6_5', 'MC16_2', 'MCxCVF1_12a_1', 'MCxCVF1_12b_1']:
+    print(trial)
+    projFileManager = FM().retProjFileManager(trial)
+    figurePrepper = FP(projFileManager)
+    figurePrepper.createAllFigures()
+    plotter = Plotter(projFileManager)
+    dfs.append(plotter.get_regression_data(whole_trial=True))
+df = pd.concat(dfs)
+g = sns.clustermap(np.abs(df).corr(), cmap='viridis', annot=True, fmt='.3f', cbar=True, vmin=-1, vmax=1, figsize=(10, 10))
+g.savefig('/Users/tuckerlancaster/Desktop/heatmaps/kde_heatmap_all_trials.pdf')
+plt.close()
+
+with open('/Users/tuckerlancaster/Desktop/heatmaps/kde_correlation_values_all_trials.txt', 'w') as f:
+    f.write('x, y, r, p\n')
+    for x in df.keys():
+        for y in df.keys():
+            r, p = pearsonr(df[x], df[y])
+            f.write('{}, {}, {}, {}\n'.format(x, y, r, p))
+
+# pid = 'MC6_5'
+# pfm = FM().retProjFileManager(pid)
+# fp = FP(pfm)
+# fp.createAllFigures()
+
 #
 # dfs = []
 # for trial in ['CV10_3', 'TI2_4', 'TI3_3']:
@@ -65,16 +84,16 @@ import sys
 # g.savefig('/home/tlancaster6/Desktop/heatmaps/kde_heatmap_all_castle_builders.pdf')
 # plt.close()
 
-dfs = []
-for trial in ['MCxCVF1_12a_1', 'MCxCVF1_12b_1']:
-    print(trial)
-    projFileManager = FM().retProjFileManager(trial)
-    plotter = Plotter(projFileManager)
-    dfs.append(plotter.get_regression_data(whole_trial=True))
-df = pd.concat(dfs)
-g = sns.clustermap(np.abs(df).corr(), cmap='viridis', annot=True, fmt='.3f', cbar=True, vmin=-1, vmax=1, figsize=(10, 10))
-g.savefig('/home/tlancaster6/Desktop/heatmaps/kde_heatmap_all_hybrids.pdf')
-plt.close()
+# dfs = []
+# for trial in ['MCxCVF1_12a_1', 'MCxCVF1_12b_1']:
+#     print(trial)
+#     projFileManager = FM().retProjFileManager(trial)
+#     plotter = Plotter(projFileManager)
+#     dfs.append(plotter.get_regression_data(whole_trial=True))
+# df = pd.concat(dfs)
+# g = sns.clustermap(np.abs(df).corr(), cmap='viridis', annot=True, fmt='.3f', cbar=True, vmin=-1, vmax=1, figsize=(10, 10))
+# g.savefig('/home/tlancaster6/Desktop/heatmaps/kde_heatmap_all_hybrids.pdf')
+# plt.close()
 
 # model = ols('depth ~ {}'.format('+'.join(plotter.ca_obj.bids)), data=df).fit()
 # t0 = ca_obj.lp_obj.frames[0].time

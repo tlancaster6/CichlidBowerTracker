@@ -32,19 +32,15 @@ class ClusterAnalyzer:
     def _appendDepthCoordinates(self):
 
         # adds columns containing X and Y in depth coordinates to all cluster csv
-        if 'Y_depth' not in list(self.clusterData.columns):
-            self.clusterData['Y_depth'] = self.clusterData.apply(
-                lambda row: (self.transM[0][0] * row.Y + self.transM[0][1] * row.X + self.transM[0][2]) / (
-                        self.transM[2][0] * row.Y + self.transM[2][1] * row.X + self.transM[2][2]), axis=1)
-        if 'X_depth' not in list(self.clusterData.columns):
-            self.clusterData['X_depth'] = self.clusterData.apply(
-                lambda row: (self.transM[1][0] * row.Y + self.transM[1][1] * row.X + self.transM[1][2]) / (
-                        self.transM[2][0] * row.Y + self.transM[2][1] * row.X + self.transM[2][2]), axis=1)
-
-        if 'approx_radius' not in list(self.clusterData.columns):
-            scaling_factor = sqrt(np.linalg.det(self.transM))
-            self.clusterData['approx_radius'] = self.clusterData.apply(
-                lambda row: np.mean(row.X_span + row.Y_span) * scaling_factor, axis=1)
+        self.clusterData['Y_depth'] = self.clusterData.apply(
+            lambda row: (self.transM[0][0] * row.Y + self.transM[0][1] * row.X + self.transM[0][2]) / (
+                    self.transM[2][0] * row.Y + self.transM[2][1] * row.X + self.transM[2][2]), axis=1)
+        self.clusterData['X_depth'] = self.clusterData.apply(
+            lambda row: (self.transM[1][0] * row.Y + self.transM[1][1] * row.X + self.transM[1][2]) / (
+                    self.transM[2][0] * row.Y + self.transM[2][1] * row.X + self.transM[2][2]), axis=1)
+        scaling_factor = sqrt(np.linalg.det(self.transM))
+        self.clusterData['approx_radius'] = self.clusterData.apply(
+            lambda row: (np.mean(row.X_span + row.Y_span) * scaling_factor)/2, axis=1)
         # self.clusterData.round({'X_Depth': 0, 'Y_Depth': 0})
 
         self.clusterData.to_csv(self.projFileManager.localAllLabeledClustersFile)
@@ -80,7 +76,7 @@ class ClusterAnalyzer:
 
     def returnClusterKDE(self, t0, t1, bid, cropped=False, bandwidth=None):
         if bandwidth is None:
-            bandwidth = self.sliceDataframe(t0, t1, bid, 'approx_radius').mean() / 2.355
+            bandwidth = self.sliceDataframe(t0, t1, bid, 'approx_radius').mean()/2
         df_slice = self.sliceDataframe(t0=t0, t1=t1, bid=bid, cropped=cropped, columns=['X_depth', 'Y_depth'])
         n_events = len(df_slice.index)
         x_bins = int(self.tray_r[2] - self.tray_r[0])
