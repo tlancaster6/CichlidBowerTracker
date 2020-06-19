@@ -36,25 +36,37 @@ import sys
 #     projFileManager = FM().retProjFileManager(trial)
 #     projFileManager.downloadData(dtype='Figures')
 
-dfs = []
-for trial in ['CV10_3', 'TI2_4', 'TI3_3', 'MC6_5', 'MC16_2', 'MCxCVF1_12a_1', 'MCxCVF1_12b_1']:
-    print(trial)
-    projFileManager = FM().retProjFileManager(trial)
-    figurePrepper = FP(projFileManager)
-    figurePrepper.createAllFigures()
-    plotter = Plotter(projFileManager)
-    dfs.append(plotter.get_regression_data(whole_trial=True))
-df = pd.concat(dfs)
-g = sns.clustermap(np.abs(df).corr(), cmap='viridis', annot=True, fmt='.3f', cbar=True, vmin=-1, vmax=1, figsize=(10, 10))
-g.savefig('/Users/tuckerlancaster/Desktop/heatmaps/kde_heatmap_all_trials.pdf')
-plt.close()
+# dfs = []
+# for trial in ['CV10_3', 'TI2_4', 'TI3_3', 'MC6_5', 'MC16_2', 'MCxCVF1_12a_1', 'MCxCVF1_12b_1']:
+#     print(trial)
+#     projFileManager = FM().retProjFileManager(trial)
+#     figurePrepper = FP(projFileManager)
+#     figurePrepper.createAllFigures()
+#     plotter = Plotter(projFileManager)
+#     dfs.append(plotter.get_regression_data(whole_trial=True))
+# df = pd.concat(dfs)
+# g = sns.clustermap(np.abs(df).corr(), cmap='viridis', annot=True, fmt='.3f', cbar=True, vmin=-1, vmax=1, figsize=(10, 10))
+# plt.close()
+# g.savefig('/Users/tuckerlancaster/Desktop/heatmaps/kde_heatmap_all_trials_abs.pdf')
+# g = sns.clustermap(df.corr(), cmap='viridis', annot=True, fmt='.3f', cbar=True, vmin=-1, vmax=1, figsize=(10, 10))
+# g.savefig('/Users/tuckerlancaster/Desktop/heatmaps/kde_heatmap_all_trials_signed.pdf')
+# plt.close()
+#
+# with open('/Users/tuckerlancaster/Desktop/heatmaps/kde_correlation_values_all_trials_abs.txt', 'w') as f:
+#     f.write('x, y, r, p\n')
+#     for x in df.keys():
+#         for y in df.keys():
+#             r, p = pearsonr(np.abs(df[x]), np.abs(df[y]))
+#             f.write('{}, {}, {}, {}\n'.format(x, y, r, p))
+#
+# with open('/Users/tuckerlancaster/Desktop/heatmaps/kde_correlation_values_all_trials_signed.txt', 'w') as f:
+#     f.write('x, y, r, p\n')
+#     for x in df.keys():
+#         for y in df.keys():
+#             r, p = pearsonr(df[x], df[y])
+#             f.write('{}, {}, {}, {}\n'.format(x, y, r, p))
 
-with open('/Users/tuckerlancaster/Desktop/heatmaps/kde_correlation_values_all_trials.txt', 'w') as f:
-    f.write('x, y, r, p\n')
-    for x in df.keys():
-        for y in df.keys():
-            r, p = pearsonr(df[x], df[y])
-            f.write('{}, {}, {}, {}\n'.format(x, y, r, p))
+
 
 # pid = 'MC6_5'
 # pfm = FM().retProjFileManager(pid)
@@ -98,4 +110,25 @@ with open('/Users/tuckerlancaster/Desktop/heatmaps/kde_correlation_values_all_tr
 # model = ols('depth ~ {}'.format('+'.join(plotter.ca_obj.bids)), data=df).fit()
 # t0 = ca_obj.lp_obj.frames[0].time
 # t1 = ca_obj.lp_obj.frames[-1].time
+
+pids = ['CV10_3', 'CV_fem_con1', 'CV_fem_con2', 'CV_fem_con3',
+       'CV_male_con1', 'CV_male_con2', 'CV_male_con3', 'CV_male_con4',
+       'CV_social_male_con1', 'CV_social_male_con1_2',
+       'CV_social_male_con2', 'CV_social_male_con3',
+       'CV_social_male_con3_2', 'MC16_2', 'MC6_5', 'MC9_1', 'MC_fem_con1',
+       'MC_fem_con2', 'MC_fem_con3', 'MC_male_con1', 'MC_male_con2',
+       'MC_male_con3', 'MC_male_con4', 'MC_social_male_con1',
+       'MC_social_male_con1_2', 'MC_social_male_con2',
+       'MC_social_male_con3', 'MCxCVF1_12a_1', 'MCxCVF1_12b_1', 'TI2_4',
+       'TI3_3', 'TI_male_con1', 'TI_male_con2', 'TI_social_fem_con1',
+       'TI_social_male_con1', 'TI_social_male_con2']
+
+for pid in pids:
+    pp = PP(pid)
+    pp.downloadData('Prep')
+    prp = PrP(pp.projFileManager)
+    prp.validateInputData()
+    prp._cropVideo()
+    pp.createUploadFile(prp.uploads)
+    pp.backupAnalysis()
 
