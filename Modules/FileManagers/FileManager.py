@@ -117,3 +117,5 @@ class FileManager():
 		if output.stderr != '':
 			print(command)
 			print(output.stderr)
+			return 1
+		return 0
