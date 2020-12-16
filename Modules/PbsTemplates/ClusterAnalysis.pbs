@@ -1,10 +1,10 @@
+#PBS -A GT-pmcgrath7
 #PBS -N ${PROJECT_ID}_ClusterAnalysis
 #PBS -l ncpus=${WORKERS}
 #PBS -l feature=${BRAND}
-#PBS -l walltime=12:00:00
+#PBS -l walltime=10:00:00
 #PBS -l file=100gb
 #PBS -l mem=250gb,vmem=375gb
-#PBS -q iw-shared-6
 #PBS -j oe
 #PBS -o ../Troubleshooting/ClusterAnalysis.out
 #PBS -t 0-${ARRAY_MAX}

@@ -139,7 +139,7 @@ class ProjectPreparer():
         upload_check = self.fileManager.uploadData(self.fileManager.localAnalysisLogDir,
                                                    self.fileManager.cloudAnalysisLogDir, False)
         if upload_check == 0:
-        	subprocess.run(['rm', '-rf', self.projFileManager.localMasterDir])
+            subprocess.run(['rm', '-rf', self.projFileManager.localMasterDir])
 
     def localDelete(self):
         self.log.write(asctime() + ' -- Deleting local files for {}\n'.format(self.projectID))

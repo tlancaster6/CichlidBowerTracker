@@ -1,8 +1,8 @@
+#PBS -A GT-pmcgrath7
 #PBS -N ${PROJECT_ID}_DepthAnalysis
 #PBS -l nodes=1:ppn=1
 #PBS -l feature=intel
-#PBS -l walltime=30:00
-#PBS -q iw-shared-6
+#PBS -l walltime=00:10:00
 #PBS -j oe
 #PBS -o ../Troubleshooting/DepthAnalysis.out
 #PBS -M ${EMAIL}

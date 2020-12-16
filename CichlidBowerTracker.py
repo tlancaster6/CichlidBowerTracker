@@ -134,8 +134,8 @@ if args.command == 'TotalProjectAnalysis':
         uname = input('Username: ')
         pword = getpass.getpass()
         datamover_shell = spur.SshShell(hostname='iw-dm-4.pace.gatech.edu', username=uname, password=pword)
-        r6_shell = spur.SshShell(hostname='login-s.pace.gatech.edu', username=uname, password=pword)
-        log = r6_shell.open('scratch/Analysis.log', 'a')
+        head_shell = spur.SshShell(hostname='login-p.pace.gatech.edu', username=uname, password=pword)
+        log = head_shell.open('scratch/Analysis.log', 'a')
 
         if args.FiguresOnly:
             log.write(asctime() + ' -- Figure Update Initiated for: {}\n'.format(', '.join(args.ProjectIDs)))
@@ -152,10 +152,10 @@ if args.command == 'TotalProjectAnalysis':
                            'python3 CichlidBowerTracker.py ProjectAnalysis Figures {} -d'.format(pid))
                 datamover_shell.run(['sh', '-c', command], cwd='data/CichlidBowerTracker', encoding='utf-8')
                 if pid == args.ProjectIDs[-1]:
-                    with r6_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
+                    with head_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
                         f.write('ssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'\n')
 
-                r6_shell.run(['qsub', 'FigurePreparer.pbs'], cwd='scratch/' + pid + '/PBS', encoding='utf-8')
+                head_shell.run(['qsub', 'FigurePreparer.pbs'], cwd='scratch/' + pid + '/PBS', encoding='utf-8')
 
         else:
             log.write(asctime() + ' -- Total Project Analysis Initiated for: {}\n'.format(', '.join(args.ProjectIDs)))
@@ -173,17 +173,17 @@ if args.command == 'TotalProjectAnalysis':
                 datamover_shell.run(['sh', '-c', command], encoding='utf-8')
                 log.write(asctime() + ' -- Modifying {} PBS files for chaining\n'.format(pid))
                 if (n + 1) < len(args.ProjectIDs):
-                    with r6_shell.open(localPbsDir + '/Next.pbs', 'a') as f:
+                    with head_shell.open(localPbsDir + '/Next.pbs', 'a') as f:
                         f.write('\nssh login-s \'cd ~/scratch/{}/PBS; qsub Download.pbs\'\n'.format(args.ProjectIDs[n+1]))
                 else:
-                    with r6_shell.open(localPbsDir + '/Next.pbs', 'a') as f:
+                    with head_shell.open(localPbsDir + '/Next.pbs', 'a') as f:
                         f.write('\necho "final project"\n')
-                    with r6_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
+                    with head_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
                         f.write('\nssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'\n')
 
             print('Initiating Analysis')
             log.write(asctime() + ' -- submitting Download script for {}\n'.format(args.ProjectIDs[0]))
-            r6_shell.run(['qsub', 'Download.pbs'], cwd='scratch/' + args.ProjectIDs[0] + '/PBS', encoding='utf-8')
+            head_shell.run(['qsub', 'Download.pbs'], cwd='scratch/' + args.ProjectIDs[0] + '/PBS', encoding='utf-8')
             print('Analysis Initiated. Safe to close local shell')
             log.close()
 
