@@ -153,7 +153,7 @@ if args.command == 'TotalProjectAnalysis':
                 datamover_shell.run(['sh', '-c', command], cwd='data/CichlidBowerTracker', encoding='utf-8')
                 if pid == args.ProjectIDs[-1]:
                     with head_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
-                        f.write('ssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'\n')
+                        f.write('ssh login-p \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'\n')
 
                 head_shell.run(['qsub', 'FigurePreparer.pbs'], cwd='scratch/' + pid + '/PBS', encoding='utf-8')
 
@@ -174,12 +174,12 @@ if args.command == 'TotalProjectAnalysis':
                 log.write(asctime() + ' -- Modifying {} PBS files for chaining\n'.format(pid))
                 if (n + 1) < len(args.ProjectIDs):
                     with head_shell.open(localPbsDir + '/Next.pbs', 'a') as f:
-                        f.write('\nssh login-s \'cd ~/scratch/{}/PBS; qsub Download.pbs\'\n'.format(args.ProjectIDs[n+1]))
+                        f.write('\nssh login-p \'cd ~/scratch/{}/PBS; qsub Download.pbs\'\n'.format(args.ProjectIDs[n+1]))
                 else:
                     with head_shell.open(localPbsDir + '/Next.pbs', 'a') as f:
                         f.write('\necho "final project"\n')
                     with head_shell.open(localPbsDir + '/Backup.pbs', 'a') as f:
-                        f.write('\nssh login-s \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'\n')
+                        f.write('\nssh login-p \'cd ~/data/CichlidBowerTracker/Modules/PbsTemplates; qsub UpdateAnalysis.pbs\'\n')
 
             print('Initiating Analysis')
             log.write(asctime() + ' -- submitting Download script for {}\n'.format(args.ProjectIDs[0]))
